@@ -35,13 +35,6 @@
       line-height: 1.15;
     }
 
-    .topbar small {
-      display: block;
-      margin-top: 4px;
-      opacity: 0.92;
-      font-size: 14px;
-    }
-
     .section {
       padding: 14px 18px;
       border-bottom: 1px solid #d6dde6;
@@ -56,8 +49,14 @@
 
     .common-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(180px, 1fr));
+      grid-template-columns: repeat(4, minmax(160px, 1fr));
       gap: 12px;
+      align-items: end;
+    }
+
+    .report-no-field {
+      grid-column: 4;
+      grid-row: 1;
     }
 
     label {
@@ -108,9 +107,8 @@
     .add-btn { background: #e7f4ee; color: #0f6b4f; border: 1px solid #b8decf; }
     .copy-btn { background: #e8f0fe; color: #1a73e8; border: 1px solid #b9cdfb; }
     .paste-btn { background: #f1e8ff; color: #6a1b9a; border: 1px solid #d1b3ff; }
-    .submit-btn { background: #1a73e8; color: white; }
-    .clear-btn { background: #eeeeee; color: #333; }
     .sample-btn { background: #fff6db; color: #8a6100; border: 1px solid #f1d98a; }
+    .submit-btn { background: #1a73e8; color: white; margin-left: auto; }
 
     button:disabled {
       opacity: 0.6;
@@ -136,12 +134,13 @@
     table {
       border-collapse: collapse;
       width: 100%;
-      min-width: 1620px;
+      min-width: 890px;
       table-layout: fixed;
       background: white;
     }
 
-    th, td {
+    th,
+    td {
       border: 1px solid #cfd8e3;
       padding: 0;
       vertical-align: middle;
@@ -158,22 +157,50 @@
       text-align: center;
       height: 48px;
       white-space: normal;
-      padding: 0 8px;
+      padding: 0 6px;
     }
 
-    .select-col { position: sticky; left: 0; z-index: 1; background: #f8fafc; width: 56px; min-width: 56px; text-align: center; }
-    .row-no { position: sticky; left: 56px; z-index: 1; background: #f8fafc; width: 58px; min-width: 58px; text-align: center; font-weight: bold; color: #555; font-size: 14px; }
-    th.select-col, th.row-no { z-index: 3; background: #e5edf5; }
+    .select-col {
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      background: #f8fafc;
+      width: 28px;
+      min-width: 28px;
+      text-align: center;
+    }
+
+    .row-no {
+      position: sticky;
+      left: 28px;
+      z-index: 1;
+      background: #f8fafc;
+      width: 29px;
+      min-width: 29px;
+      text-align: center;
+      font-weight: bold;
+      color: #555;
+      font-size: 14px;
+    }
+
+    th.select-col,
+    th.row-no {
+      z-index: 3;
+      background: #e5edf5;
+    }
 
     tr.selected-row td { background: #eaf2ff; }
-    tr.selected-row .select-col, tr.selected-row .row-no { background: #d8e7ff; }
+    tr.selected-row .select-col,
+    tr.selected-row .row-no { background: #d8e7ff; }
 
-    td input, td select {
+    td input,
+    td select,
+    td textarea {
       width: 100%;
       height: 42px;
       border: none;
       outline: none;
-      padding: 7px 8px;
+      padding: 7px 6px;
       box-sizing: border-box;
       font-size: 14px;
       background: transparent;
@@ -181,8 +208,22 @@
       text-overflow: ellipsis;
     }
 
+    td textarea {
+      font-family: inherit;
+      resize: none;
+    }
+
+    .work-task-field {
+      height: 58px;
+      min-height: 58px;
+      line-height: 20px;
+      white-space: normal;
+      overflow-y: hidden;
+    }
+
     td input:focus,
     td select:focus,
+    td textarea:focus,
     .common-grid input:focus,
     .common-grid select:focus {
       background: #fffde7;
@@ -209,28 +250,55 @@
       font-weight: 600;
     }
 
-    .medium-col { width: 150px; }
-    .item-col { width: 160px; }
-    .task-col { width: 360px; }
-    .unit-col { width: 90px; }
-    .station-col { width: 160px; }
-    .side-col { width: 95px; }
-    .qty-col { width: 135px; }
-    .remarks-col { width: 210px; }
-    .delete-col { width: 90px; }
+    .medium-col { width: 75px; }
+    .item-col { width: 80px; }
+    .task-col { width: 120px; }
+    .unit-col { width: 45px; }
+    .station-col { width: 80px; }
+    .side-col { width: 48px; }
+    .qty-col { width: 68px; }
+    .remarks-col { width: 105px; }
+    .delete-col { width: 64px; }
 
-    .delete-btn {
-      background: transparent;
-      color: #c62828;
-      padding: 0;
-      width: 42px;
-      height: 42px;
-      border-radius: 0;
-      font-size: 26px;
-      line-height: 1;
+    .delete-cell {
+      text-align: center;
+      background: #ffffff;
     }
 
-    .delete-btn:hover { background: #ffebee; }
+    .delete-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      border-radius: 10px;
+      border: 1px solid #ffc9c9;
+      background: #fff5f5;
+      color: #c92a2a;
+      font-size: 22px;
+      font-weight: 900;
+      line-height: 1;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+    }
+
+    .delete-btn:hover {
+      background: #ffe3e3;
+      border-color: #ff8787;
+      box-shadow: 0 3px 10px rgba(201, 42, 42, 0.18);
+      transform: translateY(-1px);
+    }
+
+    .delete-btn:active {
+      transform: translateY(0);
+      box-shadow: none;
+    }
+
+    .delete-btn:focus-visible {
+      outline: 3px solid rgba(201, 42, 42, 0.22);
+      outline-offset: 2px;
+    }
 
     #message {
       padding: 10px 18px 16px;
@@ -288,9 +356,12 @@
     @media (max-width: 900px) {
       body { padding: 6px; }
       .common-grid { grid-template-columns: 1fr; }
+      .report-no-field { grid-column: auto; grid-row: auto; }
       .topbar { padding: 12px 14px; }
-      .section, .toolbar { padding-left: 14px; padding-right: 14px; }
+      .section,
+      .toolbar { padding-left: 14px; padding-right: 14px; }
       .hint { padding-left: 14px; padding-right: 14px; }
+      .submit-btn { margin-left: 0; width: 100%; }
     }
   </style>
 </head>
@@ -299,11 +370,10 @@
   <div class="app">
     <div class="topbar">
       <h1>Daily Progress Report</h1>
-      <small>Submit daily progress directly to the Google Sheet</small>
     </div>
 
     <div class="section">
-      <div class="section-title">1. Common Information</div>
+      <div class="section-title">Information</div>
 
       <div class="common-grid">
         <div>
@@ -312,15 +382,22 @@
         </div>
 
         <div>
-          <label>Report No. (Auto)</label>
-          <input type="text" id="commonReportNo" placeholder="Auto: YYYYMMDD-HHMMSS" readonly required />
+          <label>RW</label>
+          <select id="commonRW" required onchange="handleRwChange()">
+            <option value="">Loading BOQ RW...</option>
+          </select>
         </div>
 
         <div>
           <label>Lot</label>
           <select id="commonLot" required onchange="handleLotChange()">
-            <option value="">Loading BOQ lots...</option>
+            <option value="">Select RW first</option>
           </select>
+        </div>
+
+        <div class="report-no-field">
+          <label>Report No. (Auto)</label>
+          <input type="text" id="commonReportNo" placeholder="Auto: YYYYMMDD-HHMMSS" readonly required />
         </div>
       </div>
     </div>
@@ -330,13 +407,11 @@
       <button class="copy-btn" type="button" onclick="copySelectedRows()">Copy Selected</button>
       <button class="paste-btn" type="button" onclick="pasteCopiedRows()">Paste Copied</button>
       <button class="sample-btn" type="button" onclick="fillSampleData()">Fill Sample Data</button>
-      <button class="sample-btn" type="button" onclick="testScriptUrl()">Test Connection</button>
-      <button class="submit-btn" type="button" onclick="prepareSubmit()">Submit Filled Rows</button>
-      <button class="clear-btn" type="button" onclick="clearAll()">Clear All</button>
+      <button class="submit-btn" type="button" onclick="prepareSubmit()">Submit Data</button>
     </div>
 
     <div class="hint" id="boqStatus">
-      Loading <strong>boq_plan_quantity</strong> for Lot, Roadline, Item, Work Task, and Unit dropdown guidance...
+      Loading <strong>boq_plan_quantity</strong> for RW, Lot, Roadline, Item, Work Task, and Unit dropdown guidance...
     </div>
 
     <div class="sheet-wrap">
@@ -348,10 +423,12 @@
             <th class="medium-col">Roadline</th>
             <th class="item-col">Item</th>
             <th class="task-col">Work Task</th>
-            <th class="unit-col">Unit</th>
             <th class="station-col">Re From Sta</th>
             <th class="station-col">Re To Sta</th>
             <th class="side-col">Side</th>
+            <th class="station-col">Co From Sta</th>
+            <th class="station-col">Co To Sta</th>
+            <th class="unit-col">Unit</th>
             <th class="qty-col">Qty Complete</th>
             <th class="remarks-col">Remarks</th>
             <th class="delete-col">Delete</th>
@@ -385,22 +462,38 @@
   </div>
 
   <script>
-    // Google Apps Script Web App URL connected to the Input_record sheet.
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwBTh1FJTkJfR6F79Cln9dk4zIkVeyTocj9qwAqrTRPv4bRiiN3HwJIIszmyW2738HqmQ/exec";
-
-    // Published CSV link for the boq_plan_quantity worksheet.
     const BOQ_PLAN_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQT9N0casxqcjjNp6hatrJ2izrTy7v5KT6FAEGICCJNfX9_uwQ2kmIqk_iz31sHzihlEzjGD26ViPR2/pub?gid=101660832&single=true&output=csv";
-
     const START_ROWS = 2;
+
+    const INPUT_RECORD_HEADERS = [
+      "RW",
+      "Date",
+      "Report_No.",
+      "Roadline",
+      "Item",
+      "Work_Task",
+      "Re_From_Sta",
+      "Re_To_Sta",
+      "Side",
+      "Co_From_Sta",
+      "Co_To_Sta",
+      "Unit",
+      "Qty_Complete",
+      "Remarks",
+      "Lot"
+    ];
 
     const rowColumns = [
       "Roadline",
       "Item",
       "Work_Task",
-      "Unit",
       "Re_From_Sta",
       "Re_To_Sta",
       "Side",
+      "Co_From_Sta",
+      "Co_To_Sta",
+      "Unit",
       "Qty_Complete",
       "Remarks"
     ];
@@ -437,11 +530,17 @@
 
     function pick(row, names, fallback = "") {
       const lookup = {};
-      Object.keys(row || {}).forEach(key => { lookup[normalize(key)] = row[key]; });
+      Object.keys(row || {}).forEach(key => {
+        lookup[normalize(key)] = row[key];
+      });
+
       for (const name of names) {
         const value = lookup[normalize(name)];
-        if (value !== undefined && value !== null && clean(value) !== "") return clean(value);
+        if (value !== undefined && value !== null && clean(value) !== "") {
+          return clean(value);
+        }
       }
+
       return fallback;
     }
 
@@ -491,10 +590,13 @@
     function csvToObjects(text) {
       const rows = parseCSV(text);
       if (rows.length === 0) return [];
+
       const headers = rows[0].map((h, index) => clean(h) || `Column ${index + 1}`);
       return rows.slice(1).map(values => {
         const obj = {};
-        headers.forEach((header, index) => { obj[header] = values[index] ?? ""; });
+        headers.forEach((header, index) => {
+          obj[header] = values[index] ?? "";
+        });
         return obj;
       }).filter(row => Object.values(row).some(v => clean(v) !== ""));
     }
@@ -505,12 +607,15 @@
     }
 
     function naturalSort(values) {
-      return [...values].sort((a, b) => clean(a).localeCompare(clean(b), undefined, { numeric: true, sensitivity: "base" }));
+      return [...values].sort((a, b) =>
+        clean(a).localeCompare(clean(b), undefined, { numeric: true, sensitivity: "base" })
+      );
     }
 
     function uniqueValues(values) {
       const seen = new Set();
       const output = [];
+
       values.forEach(value => {
         const text = clean(value);
         const key = normalize(text);
@@ -519,16 +624,23 @@
           output.push(text);
         }
       });
+
       return naturalSort(output);
     }
 
     function rowMatchesLot(item) {
+      const selectedRw = clean(document.getElementById("commonRW").value);
       const selectedLot = clean(document.getElementById("commonLot").value);
-      return !selectedLot || clean(item.lot) === selectedLot;
+      const matchesRw = !selectedRw || clean(item.rw) === selectedRw;
+      const matchesLot = !selectedLot || clean(item.lot) === selectedLot;
+      return matchesRw && matchesLot;
     }
 
     async function loadBoqData() {
+      const rwSelect = document.getElementById("commonRW");
       const lotSelect = document.getElementById("commonLot");
+
+      rwSelect.disabled = true;
       lotSelect.disabled = true;
 
       try {
@@ -539,57 +651,76 @@
         const rows = csvToObjects(text);
 
         boqRows = rows.map((row, index) => {
+          const rw = pick(row, ["RW", "Road Work", "Roadwork", "Road_Work"]);
           const lot = pick(row, ["Lot", "Package", "Contract Lot"]);
           const roadline = pick(row, ["Road Line", "Roadline", "Road", "Line", "Road_Line"]);
           const item = pick(row, ["Item No.", "Item No", "Item", "BOQ Item", "BOQ Item No.", "Item_No"]);
           const workTask = pick(row, ["Description", "Work Task", "Work_Task", "Task", "Item Description", "Work Description", "BOQ Description"]);
           const unit = pick(row, ["Unit", "UOM", "U/M", "Unit of Measure", "Measure"]);
 
-          return {
-            index,
-            lot,
-            roadline,
-            item,
-            workTask,
-            unit
-          };
-        }).filter(row => row.lot || row.roadline || row.item);
+          return { index, rw, lot, roadline, item, workTask, unit };
+        }).filter(row => row.rw || row.lot || row.roadline || row.item);
 
         boqLoaded = true;
+        populateRwOptions();
         populateLotOptions();
         refreshAllRowDropdowns(false);
 
-        boqStatus.innerHTML = `Loaded <strong>${boqRows.length}</strong> BOQ item(s). Select Lot first, then Roadline and Item. Work Task and Unit will fill automatically after Item is selected.`;
+        boqStatus.innerHTML = `Loaded <strong>${boqRows.length}</strong> BOQ item(s). Select RW and Lot first, then Roadline and Item. Work Task and Unit will fill automatically after Item is selected.`;
         boqStatus.style.color = "#4b5563";
       } catch (error) {
         console.error(error);
         boqLoaded = false;
+        rwSelect.disabled = false;
         lotSelect.disabled = false;
+        rwSelect.innerHTML = `<option value="">BOQ list failed to load</option>`;
         lotSelect.innerHTML = `<option value="">BOQ list failed to load</option>`;
         boqStatus.innerHTML = `Could not load <strong>boq_plan_quantity</strong>. Check that the BOQ worksheet is published as CSV and the URL is correct.`;
         boqStatus.style.color = "#b42318";
       }
     }
 
-    function populateLotOptions(selectedValue = "") {
-      const lotSelect = document.getElementById("commonLot");
-      const currentValue = selectedValue || lotSelect.value;
-      const lots = uniqueValues(boqRows.map(row => row.lot));
+    function populateRwOptions(selectedValue = "") {
+      const rwSelect = document.getElementById("commonRW");
+      const currentValue = selectedValue || rwSelect.value;
+      const rws = uniqueValues(boqRows.map(row => row.rw));
 
-      lotSelect.innerHTML = `<option value="">Select Lot</option>` + lots.map(lot => (
+      rwSelect.innerHTML = `<option value="">Select RW</option>` + rws.map(rw =>
+        `<option value="${escapeHtml(rw)}">${escapeHtml(rw)}</option>`
+      ).join("");
+
+      if (currentValue && rws.includes(currentValue)) rwSelect.value = currentValue;
+      rwSelect.disabled = !boqLoaded;
+    }
+
+    function populateLotOptions(selectedValue = "") {
+      const rwSelect = document.getElementById("commonRW");
+      const lotSelect = document.getElementById("commonLot");
+      const selectedRw = clean(rwSelect.value);
+      const currentValue = selectedValue || lotSelect.value;
+
+      const lots = uniqueValues(
+        boqRows
+          .filter(row => !selectedRw || clean(row.rw) === selectedRw)
+          .map(row => row.lot)
+      );
+
+      lotSelect.innerHTML = `<option value="">${selectedRw ? "Select Lot" : "Select RW first"}</option>` + lots.map(lot =>
         `<option value="${escapeHtml(lot)}">${escapeHtml(lot)}</option>`
-      )).join("");
+      ).join("");
 
       if (currentValue && lots.includes(currentValue)) {
         lotSelect.value = currentValue;
+      } else if (currentValue) {
+        lotSelect.value = "";
       }
 
-      lotSelect.disabled = false;
+      lotSelect.disabled = !boqLoaded || !selectedRw;
     }
 
     function createInput(columnName) {
       if (columnName === "Roadline") {
-        return `<select data-field="${columnName}" onchange="handleRoadlineChange(this)"><option value="">Select Lot first</option></select>`;
+        return `<select data-field="${columnName}" onchange="handleRoadlineChange(this)"><option value="">Select RW and Lot first</option></select>`;
       }
 
       if (columnName === "Item") {
@@ -597,7 +728,7 @@
       }
 
       if (columnName === "Work_Task") {
-        return `<input class="auto-field empty" type="text" data-field="${columnName}" placeholder="Select item first" readonly>`;
+        return `<textarea class="auto-field empty work-task-field" rows="2" data-field="${columnName}" placeholder="Select item first" readonly></textarea>`;
       }
 
       if (columnName === "Unit") {
@@ -635,8 +766,7 @@
         cells += `<td>${createInput(column)}</td>`;
       });
 
-      cells += `<td><button class="delete-btn" type="button" onclick="deleteRow(this)">×</button></td>`;
-
+      cells += `<td class="delete-cell"><button class="delete-btn" type="button" onclick="deleteRow(this)" title="Delete row" aria-label="Delete row">×</button></td>`;
       row.innerHTML = cells;
       tableBody.appendChild(row);
 
@@ -651,10 +781,7 @@
         }
       });
 
-      if (data.Item) {
-        applySelectedBoqItem(row);
-      }
-
+      if (data.Item) applySelectedBoqItem(row);
       updateRowNumbers();
       return row;
     }
@@ -664,7 +791,11 @@
       const currentValue = selectedValue || select.value;
       const roadlines = uniqueValues(boqRows.filter(rowMatchesLot).map(item => item.roadline));
 
-      select.innerHTML = `<option value="">${document.getElementById("commonLot").value ? "Select Roadline" : "Select Lot first"}</option>` +
+      const hasRw = clean(document.getElementById("commonRW").value);
+      const hasLot = clean(document.getElementById("commonLot").value);
+      const placeholder = !hasRw ? "Select RW first" : (!hasLot ? "Select Lot first" : "Select Roadline");
+
+      select.innerHTML = `<option value="">${placeholder}</option>` +
         roadlines.map(roadline => `<option value="${escapeHtml(roadline)}">${escapeHtml(roadline)}</option>`).join("");
 
       if (currentValue && roadlines.includes(currentValue)) {
@@ -674,7 +805,7 @@
         select.value = currentValue;
       }
 
-      select.disabled = !boqLoaded || !document.getElementById("commonLot").value;
+      select.disabled = !boqLoaded || !hasRw || !hasLot;
     }
 
     function updateItemOptions(row, selectedValue = "") {
@@ -687,6 +818,7 @@
 
       const options = [];
       const seen = new Set();
+
       filtered.forEach(item => {
         const key = normalize(item.item + "|" + item.workTask + "|" + item.unit);
         if (item.item && !seen.has(key)) {
@@ -734,16 +866,19 @@
       const itemSelect = row.querySelector(`[data-field="Item"]`);
       const selectedOption = itemSelect.options[itemSelect.selectedIndex];
       const index = selectedOption ? selectedOption.dataset.boqIndex : "";
+
       if (index !== undefined && index !== "") {
         const byIndex = boqRows.find(item => String(item.index) === String(index));
         if (byIndex) return byIndex;
       }
 
+      const rw = clean(document.getElementById("commonRW").value);
       const lot = clean(document.getElementById("commonLot").value);
       const roadline = clean(row.querySelector(`[data-field="Roadline"]`).value);
       const itemNo = clean(itemSelect.value);
 
       return boqRows.find(item =>
+        (!rw || clean(item.rw) === rw) &&
         (!lot || clean(item.lot) === lot) &&
         (!roadline || clean(item.roadline) === roadline) &&
         clean(item.item) === itemNo
@@ -755,16 +890,17 @@
       const taskInput = row.querySelector(`[data-field="Work_Task"]`);
       const unitInput = row.querySelector(`[data-field="Unit"]`);
 
-      if (boqItem) {
-        taskInput.value = boqItem.workTask || "";
-        unitInput.value = boqItem.unit || "";
-      } else {
-        taskInput.value = "";
-        unitInput.value = "";
-      }
+      taskInput.value = boqItem ? boqItem.workTask || "" : "";
+      unitInput.value = boqItem ? boqItem.unit || "" : "";
 
       toggleAutoField(taskInput);
       toggleAutoField(unitInput);
+    }
+
+    function handleRwChange() {
+      document.getElementById("commonLot").value = "";
+      populateLotOptions();
+      handleLotChange();
     }
 
     function handleLotChange() {
@@ -808,7 +944,9 @@
     }
 
     function updateRowNumbers() {
-      [...tableBody.children].forEach((row, index) => { row.querySelector(".row-no").textContent = index + 1; });
+      [...tableBody.children].forEach((row, index) => {
+        row.querySelector(".row-no").textContent = index + 1;
+      });
     }
 
     function updateRowSelection(checkbox) {
@@ -840,22 +978,6 @@
       return data;
     }
 
-    function setRowData(row, data) {
-      if (data.Roadline !== undefined) {
-        updateRoadlineOptions(row, data.Roadline);
-      }
-      if (data.Item !== undefined) {
-        updateItemOptions(row, data.Item);
-      }
-      rowColumns.forEach(column => {
-        const input = row.querySelector(`[data-field="${column}"]`);
-        if (!input || data[column] === undefined) return;
-        input.value = data[column] || "";
-        toggleAutoField(input);
-      });
-      applySelectedBoqItem(row);
-    }
-
     function getRowsData() {
       const rows = [];
       [...tableBody.children].forEach(row => {
@@ -875,6 +997,7 @@
 
     function copySelectedRows() {
       const selectedRows = getSelectedRows();
+
       if (selectedRows.length === 0) {
         message.style.color = "red";
         message.textContent = "Please select at least one row to copy.";
@@ -882,7 +1005,9 @@
       }
 
       copiedRows = selectedRows.map(row => getRowData(row));
-      const textForClipboard = copiedRows.map(row => rowColumns.map(column => row[column] || "").join("\t")).join("\n");
+      const textForClipboard = copiedRows.map(row =>
+        rowColumns.map(column => row[column] || "").join("\t")
+      ).join("\n");
 
       if (navigator.clipboard) navigator.clipboard.writeText(textForClipboard).catch(() => {});
 
@@ -908,7 +1033,11 @@
       const startRowIndex = [...tableBody.children].indexOf(startRow);
       const startColumnIndex = rowColumns.indexOf(startColumn);
 
-      const pastedRows = pastedText.replace(/\r/g, "").split("\n").filter(row => row.length > 0).map(row => row.split("\t"));
+      const pastedRows = pastedText
+        .replace(/\r/g, "")
+        .split("\n")
+        .filter(row => row.length > 0)
+        .map(row => row.split("\t"));
 
       pastedRows.forEach((pastedRow, rowOffset) => {
         let targetRow = tableBody.children[startRowIndex + rowOffset];
@@ -934,6 +1063,7 @@
     tableBody.addEventListener("paste", function (e) {
       const target = e.target;
       if (!target || !target.dataset || !target.dataset.field) return;
+
       const pastedText = e.clipboardData.getData("text");
       if (pastedText.includes("\t") || pastedText.includes("\n")) {
         e.preventDefault();
@@ -943,23 +1073,26 @@
 
     function validateRows(rows) {
       const errors = [];
+
       rows.forEach((row, index) => {
         const rowNo = index + 1;
         if (!row.Roadline) errors.push(`Row ${rowNo}: Roadline is required.`);
         if (!row.Item) errors.push(`Row ${rowNo}: Item is required.`);
         if (!row.Qty_Complete) errors.push(`Row ${rowNo}: Qty Complete is required.`);
       });
+
       return errors;
     }
 
     function prepareSubmit() {
       const commonDate = document.getElementById("commonDate").value;
       const commonReportNo = document.getElementById("commonReportNo").value;
+      const commonRW = document.getElementById("commonRW").value;
       const commonLot = document.getElementById("commonLot").value;
 
-      if (!commonDate || !commonReportNo || !commonLot) {
+      if (!commonDate || !commonReportNo || !commonRW || !commonLot) {
         message.style.color = "red";
-        message.textContent = "Please fill Date, Report No., and Lot before submitting.";
+        message.textContent = "Please fill Date, Report No., RW, and Lot before submitting.";
         return;
       }
 
@@ -977,13 +1110,19 @@
         return;
       }
 
-      pendingCommonData = { Date: commonDate, Report_No: commonReportNo, Lot: commonLot };
+      pendingCommonData = {
+        RW: commonRW,
+        Date: commonDate,
+        "Report_No.": commonReportNo,
+        Lot: commonLot
+      };
       pendingSubmitRows = rows;
 
       confirmText.innerHTML = `
         You are about to submit <b>${rows.length}</b> row(s).<br><br>
         <b>Date:</b> ${commonDate}<br>
         <b>Report No.:</b> ${commonReportNo}<br>
+        <b>RW:</b> ${commonRW}<br>
         <b>Lot:</b> ${commonLot}<br><br>
         Please confirm before sending data to the Google Sheet.
       `;
@@ -991,7 +1130,9 @@
       confirmModal.style.display = "flex";
     }
 
-    function closeConfirmModal() { confirmModal.style.display = "none"; }
+    function closeConfirmModal() {
+      confirmModal.style.display = "none";
+    }
 
     async function confirmSubmit() {
       closeConfirmModal();
@@ -1006,39 +1147,49 @@
 
       try {
         const finalRows = pendingSubmitRows.map(row => ({
+          RW: pendingCommonData.RW,
           Date: pendingCommonData.Date,
-          Report_No: pendingCommonData.Report_No,
+          "Report_No.": pendingCommonData["Report_No."],
           Roadline: row.Roadline,
           Item: row.Item,
           Work_Task: row.Work_Task,
           Re_From_Sta: row.Re_From_Sta,
           Re_To_Sta: row.Re_To_Sta,
           Side: row.Side,
-          Co_From_Sta: "",
-          Co_To_Sta: "",
+          Co_From_Sta: row.Co_From_Sta,
+          Co_To_Sta: row.Co_To_Sta,
           Unit: row.Unit,
           Qty_Complete: row.Qty_Complete,
           Remarks: row.Remarks,
           Lot: pendingCommonData.Lot
         }));
 
+        const finalValues = finalRows.map(row =>
+          INPUT_RECORD_HEADERS.map(header => row[header] ?? "")
+        );
+
         await fetch(SCRIPT_URL, {
           method: "POST",
           mode: "no-cors",
           headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ rows: finalRows })
+          body: JSON.stringify({
+            payloadVersion: "Input_record_RW_A_to_O_v3",
+            sheetName: "Input_record",
+            headers: INPUT_RECORD_HEADERS,
+            rows: finalRows,
+            values: finalValues
+          })
         });
 
         loadingOverlay.style.display = "none";
         resetAfterSubmit();
 
         message.style.color = "green";
-        message.textContent = `Request sent for ${pendingSubmitRows.length} row(s). Now check the Input_record worksheet.`;
+        message.textContent = `Request sent for ${pendingSubmitRows.length} row(s). Check Input_record columns A:O.`;
 
         pendingSubmitRows = [];
         pendingCommonData = {};
         copiedRows = [];
-
       } catch (error) {
         console.error(error);
         loadingOverlay.style.display = "none";
@@ -1047,13 +1198,7 @@
       }
 
       submitButton.disabled = false;
-      submitButton.textContent = "Submit Filled Rows";
-    }
-
-    function testScriptUrl() {
-      window.open(SCRIPT_URL, "_blank", "noopener,noreferrer");
-      message.style.color = "#333";
-      message.textContent = "Opened Apps Script URL. It should show: Web App is running. Target sheet: Input_record.";
+      submitButton.textContent = "Submit Data";
     }
 
     function clearRowsOnly() {
@@ -1070,7 +1215,9 @@
       return `${year}-${month}-${day}`;
     }
 
-    function setTodayDate() { document.getElementById("commonDate").value = getTodayDate(); }
+    function setTodayDate() {
+      document.getElementById("commonDate").value = getTodayDate();
+    }
 
     function getReportNoFromNow() {
       const now = new Date();
@@ -1083,20 +1230,15 @@
       return `${year}${month}${day}-${hour}${minute}${second}`;
     }
 
-    function setAutoReportNo() { document.getElementById("commonReportNo").value = getReportNoFromNow(); }
-
-    function clearAll() {
-      setTodayDate();
-      setAutoReportNo();
-      document.getElementById("commonLot").value = "";
-      copiedRows = [];
-      clearRowsOnly();
-      message.textContent = "";
+    function setAutoReportNo() {
+      document.getElementById("commonReportNo").value = getReportNoFromNow();
     }
 
     function resetAfterSubmit() {
       setTodayDate();
       setAutoReportNo();
+      document.getElementById("commonRW").value = "";
+      populateLotOptions();
       document.getElementById("commonLot").value = "";
       clearRowsOnly();
     }
@@ -1107,8 +1249,11 @@
       tableBody.innerHTML = "";
 
       if (boqRows.length > 0) {
-        const firstLot = boqRows.find(item => item.lot)?.lot || "";
-        document.getElementById("commonLot").value = firstLot;
+        const firstItem = boqRows.find(item => item.rw && item.lot) || boqRows[0];
+        document.getElementById("commonRW").value = firstItem.rw || "";
+        populateLotOptions(firstItem.lot || "");
+        document.getElementById("commonLot").value = firstItem.lot || "";
+
         const candidates = boqRows.filter(rowMatchesLot).slice(0, 2);
         candidates.forEach(item => addRow({
           Roadline: item.roadline,
@@ -1118,11 +1263,21 @@
           Re_From_Sta: "0+000.000",
           Re_To_Sta: "0+100.000",
           Side: "L/R",
+          Co_From_Sta: "",
+          Co_To_Sta: "",
           Qty_Complete: "1",
           Remarks: "Sample"
         }));
       } else {
-        addRow({ Re_From_Sta: "0+000.000", Re_To_Sta: "0+100.000", Side: "L/R", Qty_Complete: "1", Remarks: "Sample" });
+        addRow({
+          Re_From_Sta: "0+000.000",
+          Re_To_Sta: "0+100.000",
+          Side: "L/R",
+          Co_From_Sta: "",
+          Co_To_Sta: "",
+          Qty_Complete: "1",
+          Remarks: "Sample"
+        });
       }
 
       while (tableBody.children.length < START_ROWS) addRow();
