@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Progress Report</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f6fa;
+      margin: 0;
+      padding: 12px;
+      color: #222;
+    }
+
+    .app {
+      max-width: 100%;
+      margin: auto;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+
+    .topbar {
+      padding: 14px 20px;
+      background: #0f6b4f;
+      color: white;
+    }
+
+    .topbar h1 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.15;
+    }
+
+    .topbar small {
+      display: block;
+      margin-top: 4px;
+      opacity: 0.92;
+      font-size: 14px;
+    }
+
+    .section {
+      padding: 14px 18px;
+      border-bottom: 1px solid #d6dde6;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 12px;
+      color: #0f5132;
+    }
+
+    .common-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(180px, 1fr));
+      gap: 12px;
+    }
+
+    label {
+      font-size: 13px;
+      font-weight: bold;
+      color: #222;
+    }
+
+    .common-grid input,
+    .common-grid select {
+      width: 100%;
+      height: 40px;
+      padding: 7px 10px;
+      margin-top: 6px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      box-sizing: border-box;
+      font-size: 14px;
+      background: #fff;
+    }
+
+    .common-grid input[readonly] {
+      background: #f8fafc;
+      color: #0f5132;
+      font-weight: 700;
+      cursor: not-allowed;
+    }
+
+    .toolbar {
+      padding: 14px 18px;
+      background: #f8fafc;
+      border-bottom: 1px solid #d6dde6;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    button {
+      border: none;
+      border-radius: 6px;
+      padding: 9px 14px;
+      font-size: 14px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .add-btn { background: #e7f4ee; color: #0f6b4f; border: 1px solid #b8decf; }
+    .copy-btn { background: #e8f0fe; color: #1a73e8; border: 1px solid #b9cdfb; }
+    .paste-btn { background: #f1e8ff; color: #6a1b9a; border: 1px solid #d1b3ff; }
+    .submit-btn { background: #1a73e8; color: white; }
+    .clear-btn { background: #eeeeee; color: #333; }
+    .sample-btn { background: #fff6db; color: #8a6100; border: 1px solid #f1d98a; }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .hint {
+      padding: 0 18px 12px;
+      font-size: 13px;
+      color: #4b5563;
+      line-height: 1.45;
+      border-bottom: 1px solid #d6dde6;
+    }
+
+    .hint strong { color: #0f5132; }
+
+    .sheet-wrap {
+      overflow-x: auto;
+      max-height: none;
+      border-top: 0;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 1620px;
+      table-layout: fixed;
+      background: white;
+    }
+
+    th, td {
+      border: 1px solid #cfd8e3;
+      padding: 0;
+      vertical-align: middle;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #eef3f8;
+      color: #111827;
+      font-size: 14px;
+      font-weight: 800;
+      text-align: center;
+      height: 48px;
+      white-space: normal;
+      padding: 0 8px;
+    }
+
+    .select-col { position: sticky; left: 0; z-index: 1; background: #f8fafc; width: 56px; min-width: 56px; text-align: center; }
+    .row-no { position: sticky; left: 56px; z-index: 1; background: #f8fafc; width: 58px; min-width: 58px; text-align: center; font-weight: bold; color: #555; font-size: 14px; }
+    th.select-col, th.row-no { z-index: 3; background: #e5edf5; }
+
+    tr.selected-row td { background: #eaf2ff; }
+    tr.selected-row .select-col, tr.selected-row .row-no { background: #d8e7ff; }
+
+    td input, td select {
+      width: 100%;
+      height: 42px;
+      border: none;
+      outline: none;
+      padding: 7px 8px;
+      box-sizing: border-box;
+      font-size: 14px;
+      background: transparent;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    td input:focus,
+    td select:focus,
+    .common-grid input:focus,
+    .common-grid select:focus {
+      background: #fffde7;
+      box-shadow: inset 0 0 0 2px #1a73e8;
+      outline: none;
+    }
+
+    td select:disabled,
+    .common-grid select:disabled {
+      background: #f3f4f6;
+      color: #6b7280;
+      cursor: wait;
+    }
+
+    .auto-field {
+      background: #f8fafc !important;
+      color: #0f5132;
+      font-weight: 700;
+      cursor: not-allowed;
+    }
+
+    .auto-field.empty {
+      color: #9ca3af;
+      font-weight: 600;
+    }
+
+    .medium-col { width: 150px; }
+    .item-col { width: 160px; }
+    .task-col { width: 360px; }
+    .unit-col { width: 90px; }
+    .station-col { width: 160px; }
+    .side-col { width: 95px; }
+    .qty-col { width: 135px; }
+    .remarks-col { width: 210px; }
+    .delete-col { width: 90px; }
+
+    .delete-btn {
+      background: transparent;
+      color: #c62828;
+      padding: 0;
+      width: 42px;
+      height: 42px;
+      border-radius: 0;
+      font-size: 26px;
+      line-height: 1;
+    }
+
+    .delete-btn:hover { background: #ffebee; }
+
+    #message {
+      padding: 10px 18px 16px;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .modal-bg,
+    .loading-bg {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-box {
+      background: white;
+      width: 460px;
+      max-width: 100%;
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+    }
+
+    .modal-box h2 { margin-top: 0; font-size: 20px; color: #0f5132; }
+    .modal-box p { line-height: 1.5; color: #333; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; }
+    .cancel-btn { background: #eeeeee; color: #333; }
+    .confirm-btn { background: #0f6b4f; color: white; }
+
+    .loading-box {
+      background: white;
+      border-radius: 14px;
+      padding: 28px 36px;
+      text-align: center;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+    }
+
+    .spinner {
+      width: 46px;
+      height: 46px;
+      border: 5px solid #dbe7f0;
+      border-top: 5px solid #1a73e8;
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 900px) {
+      body { padding: 6px; }
+      .common-grid { grid-template-columns: 1fr; }
+      .topbar { padding: 12px 14px; }
+      .section, .toolbar { padding-left: 14px; padding-right: 14px; }
+      .hint { padding-left: 14px; padding-right: 14px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <div class="topbar">
+      <h1>Daily Progress Report</h1>
+      <small>Submit daily progress directly to the Google Sheet</small>
+    </div>
+
+    <div class="section">
+      <div class="section-title">1. Common Information</div>
+
+      <div class="common-grid">
+        <div>
+          <label>Date</label>
+          <input type="date" id="commonDate" required />
+        </div>
+
+        <div>
+          <label>Report No. (Auto)</label>
+          <input type="text" id="commonReportNo" placeholder="Auto: YYYYMMDD-HHMMSS" readonly required />
+        </div>
+
+        <div>
+          <label>Lot</label>
+          <select id="commonLot" required onchange="handleLotChange()">
+            <option value="">Loading BOQ lots...</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <button class="add-btn" type="button" onclick="addRow()">＋ Add Row</button>
+      <button class="copy-btn" type="button" onclick="copySelectedRows()">Copy Selected</button>
+      <button class="paste-btn" type="button" onclick="pasteCopiedRows()">Paste Copied</button>
+      <button class="sample-btn" type="button" onclick="fillSampleData()">Fill Sample Data</button>
+      <button class="sample-btn" type="button" onclick="testScriptUrl()">Test Connection</button>
+      <button class="submit-btn" type="button" onclick="prepareSubmit()">Submit Filled Rows</button>
+      <button class="clear-btn" type="button" onclick="clearAll()">Clear All</button>
+    </div>
+
+    <div class="hint" id="boqStatus">
+      Loading <strong>boq_plan_quantity</strong> for Lot, Roadline, Item, Work Task, and Unit dropdown guidance...
+    </div>
+
+    <div class="sheet-wrap">
+      <table id="entryTable">
+        <thead>
+          <tr>
+            <th class="select-col"><input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)"></th>
+            <th class="row-no">#</th>
+            <th class="medium-col">Roadline</th>
+            <th class="item-col">Item</th>
+            <th class="task-col">Work Task</th>
+            <th class="unit-col">Unit</th>
+            <th class="station-col">Re From Sta</th>
+            <th class="station-col">Re To Sta</th>
+            <th class="side-col">Side</th>
+            <th class="qty-col">Qty Complete</th>
+            <th class="remarks-col">Remarks</th>
+            <th class="delete-col">Delete</th>
+          </tr>
+        </thead>
+
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+
+    <div id="message"></div>
+  </div>
+
+  <div class="modal-bg" id="confirmModal">
+    <div class="modal-box">
+      <h2>Confirm Submit</h2>
+      <p id="confirmText"></p>
+      <div class="modal-actions">
+        <button class="cancel-btn" type="button" onclick="closeConfirmModal()">Cancel</button>
+        <button class="confirm-btn" type="button" onclick="confirmSubmit()">Confirm Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="loading-bg" id="loadingOverlay">
+    <div class="loading-box">
+      <div class="spinner"></div>
+      <strong>Submitting data...</strong>
+      <p>Please wait. Do not close this page.</p>
+    </div>
+  </div>
+
+  <script>
+    // Google Apps Script Web App URL connected to the Input_record sheet.
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwBTh1FJTkJfR6F79Cln9dk4zIkVeyTocj9qwAqrTRPv4bRiiN3HwJIIszmyW2738HqmQ/exec";
+
+    // Published CSV link for the boq_plan_quantity worksheet.
+    const BOQ_PLAN_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQT9N0casxqcjjNp6hatrJ2izrTy7v5KT6FAEGICCJNfX9_uwQ2kmIqk_iz31sHzihlEzjGD26ViPR2/pub?gid=101660832&single=true&output=csv";
+
+    const START_ROWS = 2;
+
+    const rowColumns = [
+      "Roadline",
+      "Item",
+      "Work_Task",
+      "Unit",
+      "Re_From_Sta",
+      "Re_To_Sta",
+      "Side",
+      "Qty_Complete",
+      "Remarks"
+    ];
+
+    const tableBody = document.getElementById("tableBody");
+    const message = document.getElementById("message");
+    const confirmModal = document.getElementById("confirmModal");
+    const confirmText = document.getElementById("confirmText");
+    const loadingOverlay = document.getElementById("loadingOverlay");
+    const boqStatus = document.getElementById("boqStatus");
+
+    let pendingSubmitRows = [];
+    let pendingCommonData = {};
+    let copiedRows = [];
+    let boqRows = [];
+    let boqLoaded = false;
+
+    function clean(value) {
+      return String(value ?? "").replace(/\uFEFF/g, "").trim();
+    }
+
+    function normalize(value) {
+      return clean(value).toLowerCase().replace(/[^a-z0-9]+/g, "");
+    }
+
+    function escapeHtml(value) {
+      return clean(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function pick(row, names, fallback = "") {
+      const lookup = {};
+      Object.keys(row || {}).forEach(key => { lookup[normalize(key)] = row[key]; });
+      for (const name of names) {
+        const value = lookup[normalize(name)];
+        if (value !== undefined && value !== null && clean(value) !== "") return clean(value);
+      }
+      return fallback;
+    }
+
+    function parseCSV(text) {
+      const rows = [];
+      let row = [];
+      let cell = "";
+      let inQuotes = false;
+
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const next = text[i + 1];
+
+        if (char === '"') {
+          if (inQuotes && next === '"') {
+            cell += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+          continue;
+        }
+
+        if (char === "," && !inQuotes) {
+          row.push(cell);
+          cell = "";
+          continue;
+        }
+
+        if ((char === "\n" || char === "\r") && !inQuotes) {
+          if (char === "\r" && next === "\n") i++;
+          row.push(cell);
+          rows.push(row);
+          row = [];
+          cell = "";
+          continue;
+        }
+
+        cell += char;
+      }
+
+      row.push(cell);
+      rows.push(row);
+      return rows.filter(r => r.some(c => clean(c) !== ""));
+    }
+
+    function csvToObjects(text) {
+      const rows = parseCSV(text);
+      if (rows.length === 0) return [];
+      const headers = rows[0].map((h, index) => clean(h) || `Column ${index + 1}`);
+      return rows.slice(1).map(values => {
+        const obj = {};
+        headers.forEach((header, index) => { obj[header] = values[index] ?? ""; });
+        return obj;
+      }).filter(row => Object.values(row).some(v => clean(v) !== ""));
+    }
+
+    function csvUrl(url) {
+      const joiner = url.includes("?") ? "&" : "?";
+      return `${url}${joiner}cacheBust=${Date.now()}`;
+    }
+
+    function naturalSort(values) {
+      return [...values].sort((a, b) => clean(a).localeCompare(clean(b), undefined, { numeric: true, sensitivity: "base" }));
+    }
+
+    function uniqueValues(values) {
+      const seen = new Set();
+      const output = [];
+      values.forEach(value => {
+        const text = clean(value);
+        const key = normalize(text);
+        if (text && !seen.has(key)) {
+          seen.add(key);
+          output.push(text);
+        }
+      });
+      return naturalSort(output);
+    }
+
+    function rowMatchesLot(item) {
+      const selectedLot = clean(document.getElementById("commonLot").value);
+      return !selectedLot || clean(item.lot) === selectedLot;
+    }
+
+    async function loadBoqData() {
+      const lotSelect = document.getElementById("commonLot");
+      lotSelect.disabled = true;
+
+      try {
+        const response = await fetch(csvUrl(BOQ_PLAN_CSV_URL), { cache: "no-store", mode: "cors" });
+        if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+
+        const text = await response.text();
+        const rows = csvToObjects(text);
+
+        boqRows = rows.map((row, index) => {
+          const lot = pick(row, ["Lot", "Package", "Contract Lot"]);
+          const roadline = pick(row, ["Road Line", "Roadline", "Road", "Line", "Road_Line"]);
+          const item = pick(row, ["Item No.", "Item No", "Item", "BOQ Item", "BOQ Item No.", "Item_No"]);
+          const workTask = pick(row, ["Description", "Work Task", "Work_Task", "Task", "Item Description", "Work Description", "BOQ Description"]);
+          const unit = pick(row, ["Unit", "UOM", "U/M", "Unit of Measure", "Measure"]);
+
+          return {
+            index,
+            lot,
+            roadline,
+            item,
+            workTask,
+            unit
+          };
+        }).filter(row => row.lot || row.roadline || row.item);
+
+        boqLoaded = true;
+        populateLotOptions();
+        refreshAllRowDropdowns(false);
+
+        boqStatus.innerHTML = `Loaded <strong>${boqRows.length}</strong> BOQ item(s). Select Lot first, then Roadline and Item. Work Task and Unit will fill automatically after Item is selected.`;
+        boqStatus.style.color = "#4b5563";
+      } catch (error) {
+        console.error(error);
+        boqLoaded = false;
+        lotSelect.disabled = false;
+        lotSelect.innerHTML = `<option value="">BOQ list failed to load</option>`;
+        boqStatus.innerHTML = `Could not load <strong>boq_plan_quantity</strong>. Check that the BOQ worksheet is published as CSV and the URL is correct.`;
+        boqStatus.style.color = "#b42318";
+      }
+    }
+
+    function populateLotOptions(selectedValue = "") {
+      const lotSelect = document.getElementById("commonLot");
+      const currentValue = selectedValue || lotSelect.value;
+      const lots = uniqueValues(boqRows.map(row => row.lot));
+
+      lotSelect.innerHTML = `<option value="">Select Lot</option>` + lots.map(lot => (
+        `<option value="${escapeHtml(lot)}">${escapeHtml(lot)}</option>`
+      )).join("");
+
+      if (currentValue && lots.includes(currentValue)) {
+        lotSelect.value = currentValue;
+      }
+
+      lotSelect.disabled = false;
+    }
+
+    function createInput(columnName) {
+      if (columnName === "Roadline") {
+        return `<select data-field="${columnName}" onchange="handleRoadlineChange(this)"><option value="">Select Lot first</option></select>`;
+      }
+
+      if (columnName === "Item") {
+        return `<select data-field="${columnName}" onchange="handleItemChange(this)"><option value="">Select Roadline first</option></select>`;
+      }
+
+      if (columnName === "Work_Task") {
+        return `<input class="auto-field empty" type="text" data-field="${columnName}" placeholder="Select item first" readonly>`;
+      }
+
+      if (columnName === "Unit") {
+        return `<input class="auto-field empty" type="text" data-field="${columnName}" placeholder="-" readonly>`;
+      }
+
+      if (columnName === "Qty_Complete") {
+        return `<input type="number" step="any" data-field="${columnName}" placeholder="Qty">`;
+      }
+
+      if (columnName === "Side") {
+        return `
+          <select data-field="${columnName}">
+            <option value=""></option>
+            <option value="ALL">ALL</option>
+            <option value="L">L</option>
+            <option value="R">R</option>
+            <option value="L/R">L/R</option>
+          </select>
+        `;
+      }
+
+      return `<input type="text" data-field="${columnName}">`;
+    }
+
+    function addRow(data = {}) {
+      const row = document.createElement("tr");
+
+      let cells = `
+        <td class="select-col"><input type="checkbox" class="row-check" onchange="updateRowSelection(this)"></td>
+        <td class="row-no"></td>
+      `;
+
+      rowColumns.forEach(column => {
+        cells += `<td>${createInput(column)}</td>`;
+      });
+
+      cells += `<td><button class="delete-btn" type="button" onclick="deleteRow(this)">×</button></td>`;
+
+      row.innerHTML = cells;
+      tableBody.appendChild(row);
+
+      updateRoadlineOptions(row, data.Roadline || "");
+      updateItemOptions(row, data.Item || "");
+
+      rowColumns.forEach(column => {
+        const input = row.querySelector(`[data-field="${column}"]`);
+        if (input && data[column] !== undefined && !["Roadline", "Item"].includes(column)) {
+          input.value = data[column];
+          toggleAutoField(input);
+        }
+      });
+
+      if (data.Item) {
+        applySelectedBoqItem(row);
+      }
+
+      updateRowNumbers();
+      return row;
+    }
+
+    function updateRoadlineOptions(row, selectedValue = "") {
+      const select = row.querySelector(`[data-field="Roadline"]`);
+      const currentValue = selectedValue || select.value;
+      const roadlines = uniqueValues(boqRows.filter(rowMatchesLot).map(item => item.roadline));
+
+      select.innerHTML = `<option value="">${document.getElementById("commonLot").value ? "Select Roadline" : "Select Lot first"}</option>` +
+        roadlines.map(roadline => `<option value="${escapeHtml(roadline)}">${escapeHtml(roadline)}</option>`).join("");
+
+      if (currentValue && roadlines.includes(currentValue)) {
+        select.value = currentValue;
+      } else if (currentValue) {
+        select.insertAdjacentHTML("beforeend", `<option value="${escapeHtml(currentValue)}">${escapeHtml(currentValue)}</option>`);
+        select.value = currentValue;
+      }
+
+      select.disabled = !boqLoaded || !document.getElementById("commonLot").value;
+    }
+
+    function updateItemOptions(row, selectedValue = "") {
+      const select = row.querySelector(`[data-field="Item"]`);
+      const roadline = clean(row.querySelector(`[data-field="Roadline"]`).value);
+      const currentValue = selectedValue || select.value;
+
+      let filtered = boqRows.filter(rowMatchesLot);
+      if (roadline) filtered = filtered.filter(item => clean(item.roadline) === roadline);
+
+      const options = [];
+      const seen = new Set();
+      filtered.forEach(item => {
+        const key = normalize(item.item + "|" + item.workTask + "|" + item.unit);
+        if (item.item && !seen.has(key)) {
+          seen.add(key);
+          options.push(item);
+        }
+      });
+
+      options.sort((a, b) => clean(a.item).localeCompare(clean(b.item), undefined, { numeric: true, sensitivity: "base" }));
+
+      select.innerHTML = `<option value="">${roadline ? "Select Item" : "Select Roadline first"}</option>` +
+        options.map(item => {
+          const label = item.workTask ? `${item.item} — ${item.workTask}` : item.item;
+          return `<option value="${escapeHtml(item.item)}" data-boq-index="${item.index}">${escapeHtml(label)}</option>`;
+        }).join("");
+
+      if (currentValue) {
+        const match = [...select.options].find(option => option.value === currentValue);
+        if (match) {
+          select.value = currentValue;
+        } else {
+          select.insertAdjacentHTML("beforeend", `<option value="${escapeHtml(currentValue)}">${escapeHtml(currentValue)}</option>`);
+          select.value = currentValue;
+        }
+      }
+
+      select.disabled = !boqLoaded || !document.getElementById("commonLot").value || !roadline;
+    }
+
+    function toggleAutoField(input) {
+      if (!input) return;
+      if (clean(input.value)) input.classList.remove("empty");
+      else input.classList.add("empty");
+    }
+
+    function clearAutoFields(row) {
+      ["Work_Task", "Unit"].forEach(column => {
+        const input = row.querySelector(`[data-field="${column}"]`);
+        input.value = "";
+        toggleAutoField(input);
+      });
+    }
+
+    function findSelectedBoqItem(row) {
+      const itemSelect = row.querySelector(`[data-field="Item"]`);
+      const selectedOption = itemSelect.options[itemSelect.selectedIndex];
+      const index = selectedOption ? selectedOption.dataset.boqIndex : "";
+      if (index !== undefined && index !== "") {
+        const byIndex = boqRows.find(item => String(item.index) === String(index));
+        if (byIndex) return byIndex;
+      }
+
+      const lot = clean(document.getElementById("commonLot").value);
+      const roadline = clean(row.querySelector(`[data-field="Roadline"]`).value);
+      const itemNo = clean(itemSelect.value);
+
+      return boqRows.find(item =>
+        (!lot || clean(item.lot) === lot) &&
+        (!roadline || clean(item.roadline) === roadline) &&
+        clean(item.item) === itemNo
+      );
+    }
+
+    function applySelectedBoqItem(row) {
+      const boqItem = findSelectedBoqItem(row);
+      const taskInput = row.querySelector(`[data-field="Work_Task"]`);
+      const unitInput = row.querySelector(`[data-field="Unit"]`);
+
+      if (boqItem) {
+        taskInput.value = boqItem.workTask || "";
+        unitInput.value = boqItem.unit || "";
+      } else {
+        taskInput.value = "";
+        unitInput.value = "";
+      }
+
+      toggleAutoField(taskInput);
+      toggleAutoField(unitInput);
+    }
+
+    function handleLotChange() {
+      [...tableBody.children].forEach(row => {
+        row.querySelector(`[data-field="Roadline"]`).value = "";
+        row.querySelector(`[data-field="Item"]`).value = "";
+        clearAutoFields(row);
+        updateRoadlineOptions(row);
+        updateItemOptions(row);
+      });
+    }
+
+    function handleRoadlineChange(select) {
+      const row = select.closest("tr");
+      row.querySelector(`[data-field="Item"]`).value = "";
+      clearAutoFields(row);
+      updateItemOptions(row);
+    }
+
+    function handleItemChange(select) {
+      const row = select.closest("tr");
+      applySelectedBoqItem(row);
+    }
+
+    function refreshAllRowDropdowns(keepValues = true) {
+      [...tableBody.children].forEach(row => {
+        const roadlineValue = keepValues ? row.querySelector(`[data-field="Roadline"]`).value : "";
+        const itemValue = keepValues ? row.querySelector(`[data-field="Item"]`).value : "";
+        updateRoadlineOptions(row, roadlineValue);
+        updateItemOptions(row, itemValue);
+        if (itemValue) applySelectedBoqItem(row);
+      });
+    }
+
+    function deleteRow(button) {
+      const row = button.closest("tr");
+      row.remove();
+      updateRowNumbers();
+      updateSelectAllStatus();
+      if (tableBody.children.length === 0) addRow();
+    }
+
+    function updateRowNumbers() {
+      [...tableBody.children].forEach((row, index) => { row.querySelector(".row-no").textContent = index + 1; });
+    }
+
+    function updateRowSelection(checkbox) {
+      const row = checkbox.closest("tr");
+      row.classList.toggle("selected-row", checkbox.checked);
+      updateSelectAllStatus();
+    }
+
+    function toggleSelectAll(masterCheckbox) {
+      const checks = tableBody.querySelectorAll(".row-check");
+      checks.forEach(check => {
+        check.checked = masterCheckbox.checked;
+        updateRowSelection(check);
+      });
+    }
+
+    function updateSelectAllStatus() {
+      const selectAll = document.getElementById("selectAll");
+      const checks = [...tableBody.querySelectorAll(".row-check")];
+      selectAll.checked = checks.length > 0 && checks.every(check => check.checked);
+    }
+
+    function getRowData(row) {
+      const data = {};
+      rowColumns.forEach(column => {
+        const input = row.querySelector(`[data-field="${column}"]`);
+        data[column] = input ? input.value.trim() : "";
+      });
+      return data;
+    }
+
+    function setRowData(row, data) {
+      if (data.Roadline !== undefined) {
+        updateRoadlineOptions(row, data.Roadline);
+      }
+      if (data.Item !== undefined) {
+        updateItemOptions(row, data.Item);
+      }
+      rowColumns.forEach(column => {
+        const input = row.querySelector(`[data-field="${column}"]`);
+        if (!input || data[column] === undefined) return;
+        input.value = data[column] || "";
+        toggleAutoField(input);
+      });
+      applySelectedBoqItem(row);
+    }
+
+    function getRowsData() {
+      const rows = [];
+      [...tableBody.children].forEach(row => {
+        const rowData = getRowData(row);
+        const hasData = Object.values(rowData).some(value => value !== "");
+        if (hasData) rows.push(rowData);
+      });
+      return rows;
+    }
+
+    function getSelectedRows() {
+      return [...tableBody.children].filter(row => {
+        const check = row.querySelector(".row-check");
+        return check && check.checked;
+      });
+    }
+
+    function copySelectedRows() {
+      const selectedRows = getSelectedRows();
+      if (selectedRows.length === 0) {
+        message.style.color = "red";
+        message.textContent = "Please select at least one row to copy.";
+        return;
+      }
+
+      copiedRows = selectedRows.map(row => getRowData(row));
+      const textForClipboard = copiedRows.map(row => rowColumns.map(column => row[column] || "").join("\t")).join("\n");
+
+      if (navigator.clipboard) navigator.clipboard.writeText(textForClipboard).catch(() => {});
+
+      message.style.color = "green";
+      message.textContent = `Copied ${copiedRows.length} selected row(s). Click Paste Copied to duplicate them.`;
+    }
+
+    function pasteCopiedRows() {
+      if (copiedRows.length === 0) {
+        message.style.color = "red";
+        message.textContent = "No copied rows. Select rows and click Copy Selected first.";
+        return;
+      }
+
+      copiedRows.forEach(rowData => addRow(rowData));
+      message.style.color = "green";
+      message.textContent = `Pasted ${copiedRows.length} copied row(s).`;
+    }
+
+    function pasteExcelData(startInput, pastedText) {
+      const startRow = startInput.closest("tr");
+      const startColumn = startInput.dataset.field;
+      const startRowIndex = [...tableBody.children].indexOf(startRow);
+      const startColumnIndex = rowColumns.indexOf(startColumn);
+
+      const pastedRows = pastedText.replace(/\r/g, "").split("\n").filter(row => row.length > 0).map(row => row.split("\t"));
+
+      pastedRows.forEach((pastedRow, rowOffset) => {
+        let targetRow = tableBody.children[startRowIndex + rowOffset];
+        if (!targetRow) targetRow = addRow();
+
+        pastedRow.forEach((cellValue, colOffset) => {
+          const targetColumn = rowColumns[startColumnIndex + colOffset];
+          if (!targetColumn || ["Work_Task", "Unit"].includes(targetColumn)) return;
+
+          const targetInput = targetRow.querySelector(`[data-field="${targetColumn}"]`);
+          if (!targetInput) return;
+
+          targetInput.value = cellValue.trim();
+          if (targetColumn === "Roadline") handleRoadlineChange(targetInput);
+          if (targetColumn === "Item") handleItemChange(targetInput);
+        });
+      });
+
+      message.style.color = "green";
+      message.textContent = `Pasted ${pastedRows.length} row(s) from Excel.`;
+    }
+
+    tableBody.addEventListener("paste", function (e) {
+      const target = e.target;
+      if (!target || !target.dataset || !target.dataset.field) return;
+      const pastedText = e.clipboardData.getData("text");
+      if (pastedText.includes("\t") || pastedText.includes("\n")) {
+        e.preventDefault();
+        pasteExcelData(target, pastedText);
+      }
+    });
+
+    function validateRows(rows) {
+      const errors = [];
+      rows.forEach((row, index) => {
+        const rowNo = index + 1;
+        if (!row.Roadline) errors.push(`Row ${rowNo}: Roadline is required.`);
+        if (!row.Item) errors.push(`Row ${rowNo}: Item is required.`);
+        if (!row.Qty_Complete) errors.push(`Row ${rowNo}: Qty Complete is required.`);
+      });
+      return errors;
+    }
+
+    function prepareSubmit() {
+      const commonDate = document.getElementById("commonDate").value;
+      const commonReportNo = document.getElementById("commonReportNo").value;
+      const commonLot = document.getElementById("commonLot").value;
+
+      if (!commonDate || !commonReportNo || !commonLot) {
+        message.style.color = "red";
+        message.textContent = "Please fill Date, Report No., and Lot before submitting.";
+        return;
+      }
+
+      const rows = getRowsData();
+      if (rows.length === 0) {
+        message.style.color = "red";
+        message.textContent = "No row data to submit. Please fill at least one row.";
+        return;
+      }
+
+      const rowErrors = validateRows(rows);
+      if (rowErrors.length > 0) {
+        message.style.color = "red";
+        message.textContent = rowErrors.slice(0, 3).join(" ") + (rowErrors.length > 3 ? " ..." : "");
+        return;
+      }
+
+      pendingCommonData = { Date: commonDate, Report_No: commonReportNo, Lot: commonLot };
+      pendingSubmitRows = rows;
+
+      confirmText.innerHTML = `
+        You are about to submit <b>${rows.length}</b> row(s).<br><br>
+        <b>Date:</b> ${commonDate}<br>
+        <b>Report No.:</b> ${commonReportNo}<br>
+        <b>Lot:</b> ${commonLot}<br><br>
+        Please confirm before sending data to the Google Sheet.
+      `;
+
+      confirmModal.style.display = "flex";
+    }
+
+    function closeConfirmModal() { confirmModal.style.display = "none"; }
+
+    async function confirmSubmit() {
+      closeConfirmModal();
+
+      const submitButton = document.querySelector(".submit-btn");
+      submitButton.disabled = true;
+      submitButton.textContent = "Submitting...";
+
+      loadingOverlay.style.display = "flex";
+      message.style.color = "#333";
+      message.textContent = `Submitting ${pendingSubmitRows.length} row(s)...`;
+
+      try {
+        const finalRows = pendingSubmitRows.map(row => ({
+          Date: pendingCommonData.Date,
+          Report_No: pendingCommonData.Report_No,
+          Roadline: row.Roadline,
+          Item: row.Item,
+          Work_Task: row.Work_Task,
+          Re_From_Sta: row.Re_From_Sta,
+          Re_To_Sta: row.Re_To_Sta,
+          Side: row.Side,
+          Co_From_Sta: "",
+          Co_To_Sta: "",
+          Unit: row.Unit,
+          Qty_Complete: row.Qty_Complete,
+          Remarks: row.Remarks,
+          Lot: pendingCommonData.Lot
+        }));
+
+        await fetch(SCRIPT_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ rows: finalRows })
+        });
+
+        loadingOverlay.style.display = "none";
+        resetAfterSubmit();
+
+        message.style.color = "green";
+        message.textContent = `Request sent for ${pendingSubmitRows.length} row(s). Now check the Input_record worksheet.`;
+
+        pendingSubmitRows = [];
+        pendingCommonData = {};
+        copiedRows = [];
+
+      } catch (error) {
+        console.error(error);
+        loadingOverlay.style.display = "none";
+        message.style.color = "red";
+        message.textContent = "Submit failed. Please check your Apps Script deployment.";
+      }
+
+      submitButton.disabled = false;
+      submitButton.textContent = "Submit Filled Rows";
+    }
+
+    function testScriptUrl() {
+      window.open(SCRIPT_URL, "_blank", "noopener,noreferrer");
+      message.style.color = "#333";
+      message.textContent = "Opened Apps Script URL. It should show: Web App is running. Target sheet: Input_record.";
+    }
+
+    function clearRowsOnly() {
+      tableBody.innerHTML = "";
+      for (let i = 0; i < START_ROWS; i++) addRow();
+      document.getElementById("selectAll").checked = false;
+    }
+
+    function getTodayDate() {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, "0");
+      const day = String(today.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function setTodayDate() { document.getElementById("commonDate").value = getTodayDate(); }
+
+    function getReportNoFromNow() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, "0");
+      const day = String(now.getDate()).padStart(2, "0");
+      const hour = String(now.getHours()).padStart(2, "0");
+      const minute = String(now.getMinutes()).padStart(2, "0");
+      const second = String(now.getSeconds()).padStart(2, "0");
+      return `${year}${month}${day}-${hour}${minute}${second}`;
+    }
+
+    function setAutoReportNo() { document.getElementById("commonReportNo").value = getReportNoFromNow(); }
+
+    function clearAll() {
+      setTodayDate();
+      setAutoReportNo();
+      document.getElementById("commonLot").value = "";
+      copiedRows = [];
+      clearRowsOnly();
+      message.textContent = "";
+    }
+
+    function resetAfterSubmit() {
+      setTodayDate();
+      setAutoReportNo();
+      document.getElementById("commonLot").value = "";
+      clearRowsOnly();
+    }
+
+    function fillSampleData() {
+      setTodayDate();
+      setAutoReportNo();
+      tableBody.innerHTML = "";
+
+      if (boqRows.length > 0) {
+        const firstLot = boqRows.find(item => item.lot)?.lot || "";
+        document.getElementById("commonLot").value = firstLot;
+        const candidates = boqRows.filter(rowMatchesLot).slice(0, 2);
+        candidates.forEach(item => addRow({
+          Roadline: item.roadline,
+          Item: item.item,
+          Work_Task: item.workTask,
+          Unit: item.unit,
+          Re_From_Sta: "0+000.000",
+          Re_To_Sta: "0+100.000",
+          Side: "L/R",
+          Qty_Complete: "1",
+          Remarks: "Sample"
+        }));
+      } else {
+        addRow({ Re_From_Sta: "0+000.000", Re_To_Sta: "0+100.000", Side: "L/R", Qty_Complete: "1", Remarks: "Sample" });
+      }
+
+      while (tableBody.children.length < START_ROWS) addRow();
+      document.getElementById("selectAll").checked = false;
+      message.textContent = "";
+    }
+
+    window.onload = async function () {
+      setTodayDate();
+      setAutoReportNo();
+      clearRowsOnly();
+      await loadBoqData();
+    };
+  </script>
+</body>
+</html>
