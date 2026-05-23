@@ -1,0 +1,2746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Road BOQ Progress Command Center</title>
+  <style>
+        :root {
+      --page: #f3f7f4;
+      --page-2: #fbfdfb;
+      --surface: #ffffff;
+      --surface-soft: #f5faf6;
+      --surface-strong: #e8f1eb;
+      --ink: #102016;
+      --text: #1e2e24;
+      --muted: #637267;
+      --line: #dce8df;
+      --line-strong: #cbd9cf;
+      --accent: #16a34a;
+      --accent-2: #22c55e;
+      --accent-3: #047857;
+      --accent-soft: #ecfdf3;
+      --blue: #16a34a;
+      --blue-2: #22c55e;
+      --blue-soft: #ecfdf3;
+      --green: #12805c;
+      --green-soft: #e7f7ef;
+      --yellow: #9a5b00;
+      --yellow-soft: #fff5dc;
+      --red: #b42318;
+      --red-soft: #fee4e2;
+      --navy: #102016;
+      --navy-2: #17251d;
+      --navy-3: #22342a;
+      --radius-xl: 30px;
+      --radius-lg: 22px;
+      --radius-md: 14px;
+      --shadow: 0 24px 70px rgba(16, 32, 22, .10);
+      --shadow-sm: 0 12px 34px rgba(16, 32, 22, .075);
+      --shadow-xs: 0 1px 2px rgba(16, 32, 22, .06);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Avenir Next", Avenir, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background:
+        radial-gradient(circle at 12% -6%, rgba(22, 163, 74, .14), transparent 31rem),
+        radial-gradient(circle at 92% 4%, rgba(16, 32, 22, .07), transparent 27rem),
+        linear-gradient(180deg, var(--page-2) 0%, var(--page) 42%, #e9f2ec 100%);
+      color: var(--text);
+      letter-spacing: -.01em;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image: radial-gradient(rgba(16, 32, 22, .045) 1px, transparent 1px);
+      background-size: 22px 22px;
+      mask-image: linear-gradient(to bottom, rgba(0, 0, 0, .65), rgba(0, 0, 0, .06));
+    }
+
+    button, input, select { font: inherit; }
+
+    ::selection { background: rgba(22, 163, 74, .20); color: var(--ink); }
+
+    .app {
+      width: min(1780px, 100%);
+      margin: 0 auto;
+      padding: 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .dashboard-shell {
+      display: grid;
+      grid-template-columns: 316px minmax(0, 1fr);
+      gap: 22px;
+      align-items: start;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 24px;
+      min-height: calc(100vh - 48px);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      color: var(--text);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, .96), rgba(255, 252, 246, .92)),
+        var(--surface);
+      box-shadow: var(--shadow-sm);
+      border: 1px solid rgba(203, 217, 207, .92);
+      backdrop-filter: blur(18px);
+    }
+
+    .sidebar::before {
+      content: "";
+      display: block;
+      height: 5px;
+      background: linear-gradient(90deg, var(--accent), #86efac 55%, rgba(22, 163, 74, 0));
+    }
+
+    .sidebar-inner {
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .side-card {
+      border: 1px solid rgba(220, 232, 223, .95);
+      background: rgba(255, 255, 255, .82);
+      border-radius: 22px;
+      padding: 16px;
+      margin-bottom: 0;
+      box-shadow: var(--shadow-xs);
+    }
+
+    .side-label {
+      display: block;
+      margin-bottom: 12px;
+      color: var(--muted);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .16em;
+      font-weight: 850;
+    }
+
+    .live-status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .live-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      color: #14532d;
+      background: #ecfdf3;
+      border: 1px solid #bbf7d0;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .11em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .72);
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 99px;
+      background: #16a34a;
+      box-shadow: 0 0 0 0 rgba(22, 163, 74, .62);
+      animation: livePulse 1.6s infinite;
+    }
+
+    @keyframes livePulse {
+      0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, .50); }
+      72% { box-shadow: 0 0 0 10px rgba(22, 163, 74, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
+    }
+
+    .clock-stack small {
+      display: block;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+      text-align: right;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .clock-stack strong {
+      display: block;
+      color: var(--ink);
+      font-size: 12px;
+      line-height: 1.35;
+      text-align: right;
+      font-weight: 850;
+    }
+
+    .control-stack { display: grid; gap: 12px; }
+
+    .field label {
+      display: block;
+      margin: 0 0 7px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 850;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+    }
+
+    select, input {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: #fbfefc;
+      color: var(--ink);
+      padding: 11px 12px;
+      border-radius: 14px;
+      outline: none;
+      font-size: 13px;
+      font-weight: 650;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .75);
+      transition: border-color .18s ease, box-shadow .18s ease, background .18s ease, transform .18s ease;
+    }
+
+    select { cursor: pointer; }
+    select option { color: #111827; background: #ffffff; }
+    input::placeholder { color: #a59c91; opacity: 1; }
+
+    select:hover, input:hover {
+      border-color: var(--line-strong);
+      background: #ffffff;
+    }
+
+    select:focus, input:focus {
+      border-color: rgba(22, 163, 74, .68);
+      box-shadow: 0 0 0 4px rgba(22, 163, 74, .13), inset 0 1px 0 rgba(255, 255, 255, .85);
+      background: #ffffff;
+    }
+
+    .button-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 2px;
+    }
+
+    .button-grid.single-button { grid-template-columns: 1fr; }
+
+    button {
+      appearance: none;
+      border: 0;
+      cursor: pointer;
+      border-radius: 14px;
+      padding: 11px 13px;
+      font-size: 12px;
+      font-weight: 850;
+      letter-spacing: -.005em;
+      transition: transform .16s ease, box-shadow .16s ease, background .16s ease, border-color .16s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+    button:focus-visible { outline: 3px solid rgba(22, 163, 74, .28); outline-offset: 3px; }
+
+    button.primary {
+      color: #ffffff;
+      background: linear-gradient(135deg, var(--accent), var(--accent-3));
+      box-shadow: 0 16px 32px rgba(22, 163, 74, .22);
+    }
+
+    button.secondary {
+      color: var(--ink);
+      background: #ffffff;
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow-xs);
+    }
+
+    .content { min-width: 0; }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(16, 32, 22, .10);
+      border-radius: 34px;
+      background:
+        linear-gradient(135deg, #102016 0%, #17251d 54%, #2b372f 100%);
+      box-shadow: var(--shadow);
+      padding: clamp(24px, 3vw, 42px);
+      margin-bottom: 22px;
+      color: #ffffff;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, .055) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, .055) 1px, transparent 1px);
+      background-size: 34px 34px;
+      mask-image: linear-gradient(135deg, rgba(0, 0, 0, .38), transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero::after {
+      content: none;
+      display: none;
+    }
+
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      border: 1px solid rgba(255, 255, 255, .18);
+      background: rgba(255, 255, 255, .08);
+      color: #fed7aa;
+      border-radius: 999px;
+      padding: 7px 11px;
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 99px;
+      background: var(--accent);
+    }
+
+    #projectTitle {
+      margin: 0;
+      max-width: 1050px;
+      color: #ffffff;
+      font-size: clamp(32px, 4vw, 62px);
+      line-height: .94;
+      letter-spacing: -.075em;
+      font-weight: 900;
+      text-wrap: balance;
+    }
+
+    #projectSubtitle {
+      margin: 12px 0 0;
+      color: rgba(255, 255, 255, .70);
+      font-size: 15px;
+      font-weight: 650;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 10px;
+      min-width: 258px;
+    }
+
+    .hero-actions button {
+      color: #ffffff;
+      background: rgba(255, 255, 255, .10);
+      border: 1px solid rgba(255, 255, 255, .20);
+      box-shadow: none;
+      backdrop-filter: blur(14px);
+    }
+
+    .hero-actions button:hover { background: rgba(255, 255, 255, .16); }
+
+    .hero-actions button.primary-action {
+      color: #102016;
+      background: linear-gradient(135deg, #86efac, var(--accent));
+      border-color: rgba(255, 179, 109, .80);
+      box-shadow: 0 16px 38px rgba(22, 163, 74, .22);
+    }
+
+    .notice {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 10px;
+      align-items: start;
+      margin-top: 22px;
+      padding: 13px 14px;
+      border-radius: 18px;
+      border: 1px solid rgba(216, 206, 192, .62);
+      background: rgba(255, 255, 255, .72);
+      color: var(--muted);
+      box-shadow: var(--shadow-xs);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .notice strong { display: block; color: var(--ink); margin-bottom: 2px; font-size: 13px; }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      margin-top: 4px;
+      border-radius: 99px;
+      background: var(--yellow);
+      box-shadow: 0 0 0 4px rgba(154, 91, 0, .14);
+    }
+
+    .status-dot.ready { background: var(--green); box-shadow: 0 0 0 4px rgba(18, 128, 92, .14); }
+    .status-dot.error { background: var(--red); box-shadow: 0 0 0 4px rgba(180, 35, 24, .14); }
+
+    .section-title {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 5px 2px 13px;
+    }
+
+    .section-title h2 {
+      margin: 0;
+      color: var(--ink);
+      font-size: 19px;
+      letter-spacing: -.04em;
+      font-weight: 900;
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .section-title h2::before {
+      content: "";
+      width: 9px;
+      height: 9px;
+      border-radius: 99px;
+      background: var(--accent);
+      box-shadow: 0 0 0 5px rgba(22, 163, 74, .10);
+    }
+
+    .section-title p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+
+    .project-strip {
+      display: grid;
+      grid-template-columns: minmax(240px, 1.4fr) repeat(4, minmax(152px, 1fr));
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+
+    .sidebar-snapshot-card .section-title {
+      margin: 0 0 13px;
+      align-items: flex-start;
+    }
+
+    .sidebar .project-strip {
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-bottom: 0;
+    }
+
+    .sidebar .project-item {
+      min-height: auto;
+      border-radius: 18px;
+      padding: 14px;
+    }
+
+    .sidebar .value {
+      font-size: 14px;
+    }
+
+
+    .sidebar-section-title h2::before {
+      content: none;
+      display: none;
+    }
+
+    .project-item, .kpi-card, .card {
+      background: rgba(255, 255, 255, .88);
+      border: 1px solid rgba(230, 222, 211, .96);
+      box-shadow: var(--shadow-sm);
+      backdrop-filter: blur(12px);
+    }
+
+    .project-item {
+      min-height: 102px;
+      border-radius: 24px;
+      padding: 17px;
+      position: relative;
+      overflow: hidden;
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+
+    .project-item::after {
+      content: none;
+      display: none;
+    }
+
+    .project-item:hover { transform: translateY(-2px); border-color: rgba(22, 163, 74, .34); box-shadow: var(--shadow); }
+
+    .label {
+      display: block;
+      margin-bottom: 10px;
+      color: var(--muted);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .15em;
+      font-weight: 900;
+    }
+
+    .value {
+      color: var(--ink);
+      font-size: 15px;
+      font-weight: 900;
+      line-height: 1.28;
+      word-break: break-word;
+      position: relative;
+      z-index: 1;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(150px, 1fr));
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+
+    .kpi-card {
+      position: relative;
+      isolation: isolate;
+      min-height: 138px;
+      overflow: hidden;
+      border-radius: 26px;
+      padding: 19px;
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+
+    .kpi-card:hover { transform: translateY(-2px); border-color: rgba(22, 163, 74, .30); box-shadow: var(--shadow); }
+
+    .kpi-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(22, 163, 74, .09), transparent 52%);
+      z-index: -1;
+    }
+
+    .kpi-card::after {
+      content: none;
+      display: none;
+    }
+
+    .kpi-head {
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .kpi-number {
+      color: var(--ink);
+      font-size: clamp(24px, 2vw, 34px);
+      font-weight: 950;
+      letter-spacing: -.065em;
+      line-height: .96;
+      margin-bottom: 15px;
+      white-space: nowrap;
+    }
+
+    .kpi-sub { color: var(--muted); font-size: 12px; }
+
+    .status-pill, .mini-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-weight: 850;
+      font-size: 11px;
+      line-height: 1;
+      white-space: nowrap;
+      border: 1px solid transparent;
+    }
+
+    .green { color: var(--green); background: var(--green-soft); border-color: rgba(18, 128, 92, .14); }
+    .yellow { color: var(--yellow); background: var(--yellow-soft); border-color: rgba(154, 91, 0, .14); }
+    .red { color: var(--red); background: var(--red-soft); border-color: rgba(180, 35, 24, .14); }
+    .blue { color: var(--accent-3); background: var(--accent-soft); border-color: rgba(22, 163, 74, .16); }
+    .muted { color: var(--muted); background: #edf5f0; border-color: rgba(216, 206, 192, .80); }
+
+    .analytics-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.16fr) minmax(390px, .84fr);
+      gap: 22px;
+      align-items: stretch;
+      margin-bottom: 22px;
+    }
+
+    .card {
+      border-radius: 28px;
+      padding: 21px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 4px;
+      background: linear-gradient(90deg, rgba(22, 163, 74, .68), rgba(22, 163, 74, 0));
+      opacity: .9;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      gap: 14px;
+      margin-bottom: 16px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .card-title {
+      margin: 0;
+      color: var(--ink);
+      font-size: 18px;
+      letter-spacing: -.035em;
+      font-weight: 900;
+    }
+
+    .card-caption {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+      max-width: 920px;
+    }
+
+    .chart-wrap {
+      width: 100%;
+      min-height: 350px;
+      border: 1px solid rgba(230, 222, 211, .96);
+      border-radius: 24px;
+      padding: 15px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, .98) 0%, rgba(250, 247, 241, .88) 100%);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .80);
+      position: relative;
+      z-index: 1;
+    }
+
+    canvas { display: block; width: 100%; height: 338px; }
+
+    .lot-scurve-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .lot-scurve-card {
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 16px;
+      background: linear-gradient(180deg, #ffffff 0%, #fbfdfb 100%);
+      box-shadow: var(--shadow-xs);
+    }
+
+    .lot-scurve-card h3 {
+      margin: 0 0 12px;
+      color: var(--ink);
+      font-size: 15px;
+      letter-spacing: -.025em;
+      font-weight: 900;
+    }
+
+    .lot-scurve-card canvas { height: 260px; }
+
+    .item-chart-wrap {
+      min-height: 430px;
+      overflow-x: hidden;
+      overflow-y: hidden;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(37, 99, 235, .45) rgba(239, 246, 255, .95);
+    }
+
+    .item-chart-wrap canvas { height: 430px; }
+    .table-card { margin-bottom: 22px; }
+
+    .table-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      max-height: 620px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: #ffffff;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8);
+    }
+
+    table {
+      width: 100%;
+      min-width: 980px;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 13px;
+    }
+
+    th, td {
+      padding: 12px 13px;
+      border-bottom: 1px solid rgba(230, 222, 211, .88);
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #fbfdfb;
+      color: var(--muted);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      font-weight: 900;
+      white-space: nowrap;
+      box-shadow: inset 0 -1px 0 rgba(203, 217, 207, .92);
+    }
+
+    tbody tr { transition: background .15s ease, box-shadow .15s ease; }
+    tbody tr:hover { background: #f3fbf5; }
+    tr:last-child td { border-bottom: 0; }
+    td strong { color: var(--ink); }
+    .right { text-align: right; }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      margin-top: 8px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #eef4ff;
+      border: 1px solid rgba(191, 219, 254, .76);
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #1d4ed8 0%, #2563eb 58%, #60a5fa 100%);
+      box-shadow: none;
+    }
+
+    .empty {
+      padding: 32px;
+      text-align: center;
+      color: var(--muted);
+      border: 1px dashed var(--line-strong);
+      border-radius: 20px;
+      background: #fbfdfb;
+      font-weight: 700;
+    }
+
+    .small-note, .footer-note {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .small-note { margin: 12px 0 0; }
+    .footer-note { text-align: center; padding: 4px 12px 12px; }
+
+
+
+    .latest-updates-card {
+      padding-bottom: 18px;
+    }
+
+    .latest-title-row {
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .latest-title-row p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .latest-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .latest-row {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 12px;
+      background: linear-gradient(180deg, #ffffff 0%, #fbfdfb 100%);
+      box-shadow: var(--shadow-xs);
+    }
+
+    .latest-row-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .latest-row-title {
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 900;
+      line-height: 1.25;
+      word-break: break-word;
+    }
+
+    .latest-row-meta {
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      line-height: 1.35;
+    }
+
+    .latest-row-task {
+      margin-top: 6px;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 750;
+      line-height: 1.35;
+      word-break: break-word;
+    }
+
+    .latest-row-foot {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-top: 9px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .latest-empty {
+      padding: 18px 12px;
+      font-size: 12px;
+    }
+
+    @media (max-width: 1320px) {
+      .app { padding: 18px; }
+      .dashboard-shell { grid-template-columns: 1fr; }
+      .sidebar { position: relative; top: auto; min-height: 0; }
+      .sidebar-inner { grid-template-columns: .8fr 1.2fr; gap: 14px; align-items: start; }
+      .project-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .analytics-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 840px) {
+      .app { padding: 10px; }
+      .dashboard-shell { gap: 14px; }
+      .sidebar, .hero, .card { border-radius: 22px; }
+      .sidebar-inner { display: block; }
+      .side-card { margin-bottom: 12px; }
+      .hero { padding: 22px; }
+      .hero-top { flex-direction: column; }
+      .hero-actions { width: 100%; justify-content: stretch; min-width: 0; }
+      .hero-actions button { flex: 1 1 145px; }
+      .project-strip, .kpi-grid { grid-template-columns: 1fr; }
+      .button-grid { grid-template-columns: 1fr; }
+      .card-header, .section-title, .table-toolbar { flex-direction: column; align-items: flex-start; }
+      .chart-wrap { min-height: 310px; padding: 10px; }
+      canvas { height: 300px; }
+      .lot-scurve-grid { grid-template-columns: 1fr; }
+      .lot-scurve-card canvas { height: 250px; }
+      .item-chart-wrap { min-height: 430px; }
+      .item-chart-wrap canvas { height: 430px; }
+      th, td { padding: 11px 12px; }
+    }
+
+    @media (max-width: 520px) {
+      #projectTitle { font-size: clamp(30px, 12vw, 42px); }
+      .live-status { align-items: flex-start; flex-direction: column; }
+      .clock-stack small, .clock-stack strong { text-align: left; }
+      .hero-actions { flex-direction: column; }
+      .hero-actions button { width: 100%; }
+      .card { padding: 16px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+      .live-dot { animation: none; }
+    }
+
+    @media print {
+      body { background: #ffffff; }
+      body::before { display: none; }
+      .app { width: 100%; padding: 0; }
+      .dashboard-shell { display: block; }
+      .sidebar, .hero-actions, .notice { display: none; }
+      .hero { color: #000000; background: #ffffff; border: 0; }
+      #projectTitle { color: #000000; }
+      .hero, .card, .project-item, .kpi-card { box-shadow: none; break-inside: avoid; }
+      .analytics-grid { grid-template-columns: 1fr; }
+      .table-wrap { max-height: none; overflow: visible; }
+    }
+
+  </style>
+</head>
+<body>
+  <main class="app">
+    <div class="dashboard-shell">
+      <aside class="sidebar" aria-label="Dashboard controls">
+        <div class="sidebar-inner">
+          <section class="side-card">
+            <div class="live-status">
+              <span class="live-pill"><span class="live-dot" aria-hidden="true"></span>Live</span>
+              <span class="clock-stack"><small>Bangkok time</small><strong id="bangkokClock">--:--:--</strong></span>
+            </div>
+          </section>
+
+
+          <section class="side-card latest-updates-card">
+            <div class="section-title sidebar-section-title latest-title-row">
+              <div>
+                <h2>Latest input rows</h2>
+                <p>Newest 4 records from Input_record</p>
+              </div>
+              <span class="mini-pill blue" id="latestRowsPill">0</span>
+            </div>
+            <div class="latest-list" id="latestInputRows">
+              <div class="empty latest-empty">Loading latest rows...</div>
+            </div>
+          </section>
+
+        </div>
+      </aside>
+
+      <section class="content">
+        <section class="hero">
+          <div class="hero-top">
+            <div>
+              <h1 id="projectTitle">Road BOQ Progress Dashboard</h1>
+            </div>
+            <div class="hero-actions">
+              <button type="button" class="primary-action" onclick="loadDashboard()">Refresh data</button>
+              <button type="button" onclick="openFillData()">Fill data</button>
+              <button type="button" onclick="exportCurrentCSV()">Download CSV</button>
+            </div>
+          </div>
+
+        </section>
+
+        <div class="section-title">
+          <div>
+            <h2>Executive KPIs</h2>
+          </div>
+        </div>
+        <section class="kpi-grid" id="kpiGrid"></section>
+
+        <section class="analytics-grid">
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title">Progress S-Curve</h2>
+              </div>
+            </div>
+            <div class="chart-wrap"><canvas id="progressChart"></canvas></div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title">BOQ Amount by Lot</h2>
+              </div>
+            </div>
+            <div class="chart-wrap"><canvas id="lotChart"></canvas></div>
+          </div>
+        </section>
+
+        <section class="card table-card">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">Progress S-Curve by Lot</h2>
+            </div>
+          </div>
+          <div class="lot-scurve-grid" id="lotSCurveCards"></div>
+        </section>
+
+        <section class="card table-card">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">Bill of Item Progress</h2>
+            </div>
+            <span class="mini-pill blue" id="itemChartPill">0 items</span>
+          </div>
+          <div class="chart-wrap item-chart-wrap"><canvas id="itemProgressChart"></canvas></div>
+          <p class="small-note" id="itemChartNote"></p>
+        </section>
+
+        <section class="card table-card">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">Road Line Summary</h2>
+              <p class="card-caption">Planned quantity/value from BOQ. Input_record now supplies filled quantity; earned amount is calculated as filled quantity × BOQ rate.</p>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Lot</th>
+                  <th>Road Line</th>
+                  <th class="right">Items</th>
+                  <th class="right">Planned Qty</th>
+                  <th class="right">Actual Qty</th>
+                  <th class="right">BOQ Amount</th>
+                  <th class="right">Earned Amount</th>
+                  <th>Progress</th>
+                </tr>
+              </thead>
+              <tbody id="summaryTable"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card table-card">
+          <div class="table-toolbar">
+            <div>
+              <h2 class="card-title">BOQ Item Detail</h2>
+              <p class="card-caption">Planned quantity from boq_plan_quantity. Progress uses filled quantity from Input_record and calculates earned amount from BOQ rate.</p>
+            </div>
+            <span class="mini-pill blue" id="itemCountPill">0 items</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>RW</th>
+                  <th>Lot</th>
+                  <th>Road Line</th>
+                  <th>Item No.</th>
+                  <th>Description</th>
+                  <th>Unit</th>
+                  <th class="right">Planned Qty</th>
+                  <th class="right">Actual Qty</th>
+                  <th class="right">Rate</th>
+                  <th class="right">Amount</th>
+                  <th>Progress</th>
+                </tr>
+              </thead>
+              <tbody id="boqTable"></tbody>
+            </table>
+          </div>
+          <p class="small-note" id="tableNote"></p>
+        </section>
+
+        <p class="footer-note">Connected to one Google Sheet: published CSV links for dashboard reading, and Apps Script Web App for Fill data writing. Input_record Qty_Complete is treated as physical completed quantity.</p>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    // =========================================================
+    // GOOGLE SHEET CSV LINKS
+    // Keep these links published as CSV from Google Sheets.
+    // Worksheet 3/Input_record may have fewer columns now.
+    // Qty_Complete / column L is treated as physical completed quantity; earned amount is calculated from BOQ rate.
+    // =========================================================
+    // Companion file generated together with this dashboard. Keep both files in the same folder for the Fill data button to work.
+    const ENTRY_FORM_FILE = "Fill_Data_Google_Sheet_NEW_URL.html";
+
+    const SHEETS = {
+      projectInfo: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQT9N0casxqcjjNp6hatrJ2izrTy7v5KT6FAEGICCJNfX9_uwQ2kmIqk_iz31sHzihlEzjGD26ViPR2/pub?gid=323191619&single=true&output=csv",
+      boqPlanQuantity: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQT9N0casxqcjjNp6hatrJ2izrTy7v5KT6FAEGICCJNfX9_uwQ2kmIqk_iz31sHzihlEzjGD26ViPR2/pub?gid=101660832&single=true&output=csv",
+      timeQuantity: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQT9N0casxqcjjNp6hatrJ2izrTy7v5KT6FAEGICCJNfX9_uwQ2kmIqk_iz31sHzihlEzjGD26ViPR2/pub?gid=1684935154&single=true&output=csv"
+    };
+
+    const state = {
+      project: {},
+      boqItems: [],
+      roadSummary: [],
+      lotSummary: [],
+      timeline: [],
+      lotTimeline: [],
+      timeRows: [],
+      filters: { lot: "all", roadLine: "all", search: "" },
+      meta: { worksheet3Rows: 0, worksheet3ActualRows: 0, subtotalRows: 0, actualValueMode: "quantity", errors: [] }
+    };
+
+    let scurveBlinkFrame = null;
+
+    function normalize(value) {
+      return String(value ?? "")
+        .trim()
+        .toLowerCase()
+        .replace(/\uFEFF/g, "")
+        .replace(/[^a-z0-9]+/g, "");
+    }
+
+    function clean(value) {
+      return String(value ?? "").replace(/\uFEFF/g, "").trim();
+    }
+
+    function toNumber(value) {
+      if (value === null || value === undefined) return 0;
+      const text = String(value).replace(/,/g, "").replace(/[$%]/g, "").trim();
+      if (!text || text === "-" || text.toLowerCase() === "nan") return 0;
+      const num = Number(text);
+      return Number.isFinite(num) ? num : 0;
+    }
+
+    function parseSheetDate(value) {
+      const raw = clean(value);
+      if (!raw) return null;
+
+      const iso = raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+      if (iso) return new Date(Date.UTC(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3])));
+
+      const dmy = raw.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/);
+      if (dmy) {
+        const year = Number(dmy[3].length === 2 ? `20${dmy[3]}` : dmy[3]);
+        return new Date(Date.UTC(year, Number(dmy[2]) - 1, Number(dmy[1])));
+      }
+
+      const serial = Number(raw);
+      if (Number.isFinite(serial) && serial > 20000) {
+        const date = new Date(Date.UTC(1899, 11, 30));
+        date.setUTCDate(date.getUTCDate() + Math.floor(serial));
+        return date;
+      }
+
+      const parsed = new Date(raw);
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+
+    function formatDateKey(date) {
+      return date.toISOString().slice(0, 10);
+    }
+
+    function formatShortDate(dateKey) {
+      if (!dateKey) return "-";
+      const date = parseSheetDate(dateKey);
+      if (!date) return dateKey;
+      return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    }
+
+    function safePct(value) {
+      if (!Number.isFinite(value)) return 0;
+      return Math.max(0, Math.min(100, value));
+    }
+
+    function pick(row, names, fallback = "") {
+      if (!row) return fallback;
+      const lookup = {};
+      Object.keys(row).forEach(key => { lookup[normalize(key)] = row[key]; });
+      for (const name of names) {
+        const hit = lookup[normalize(name)];
+        if (hit !== undefined && hit !== null && String(hit).trim() !== "") return hit;
+      }
+      return fallback;
+    }
+
+    function formatNumber(value, decimals = 0) {
+      return new Intl.NumberFormat("en-US", {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
+      }).format(Number.isFinite(value) ? value : 0);
+    }
+
+    function formatQuantity(value) {
+      const number = Number.isFinite(value) ? value : 0;
+      const decimals = Math.abs(number % 1) > 0.0001 ? (Math.abs(number) < 10 ? 2 : 1) : 0;
+      return formatNumber(number, decimals);
+    }
+
+    function getCurrencyCode() {
+      const code = clean(projectValue(["Currency", "Currency Code", "Money Currency"], "USD")).toUpperCase();
+      return /^[A-Z]{3}$/.test(code) ? code : "USD";
+    }
+
+    function formatMoney(value) {
+      const currency = getCurrencyCode();
+      try {
+        return new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency,
+          maximumFractionDigits: 0
+        }).format(Number.isFinite(value) ? value : 0);
+      } catch (error) {
+        return `${formatNumber(value)} ${currency}`;
+      }
+    }
+
+    function csvUrl(url) {
+      const joiner = url.includes("?") ? "&" : "?";
+      return `${url}${joiner}cacheBust=${Date.now()}`;
+    }
+
+    async function fetchCSV(name, url, required = false) {
+      try {
+        const response = await fetch(csvUrl(url), { cache: "no-store", mode: "cors" });
+        if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+        const text = await response.text();
+        return csvToObjects(text);
+      } catch (error) {
+        const message = `${name}: ${error.message}`;
+        state.meta.errors.push(message);
+        if (required) throw new Error(message);
+        return [];
+      }
+    }
+
+    function parseCSV(text) {
+      const rows = [];
+      let row = [];
+      let cell = "";
+      let inQuotes = false;
+
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const next = text[i + 1];
+
+        if (char === '"') {
+          if (inQuotes && next === '"') {
+            cell += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+          continue;
+        }
+
+        if (char === "," && !inQuotes) {
+          row.push(cell);
+          cell = "";
+          continue;
+        }
+
+        if ((char === "\n" || char === "\r") && !inQuotes) {
+          if (char === "\r" && next === "\n") i++;
+          row.push(cell);
+          rows.push(row);
+          row = [];
+          cell = "";
+          continue;
+        }
+
+        cell += char;
+      }
+
+      row.push(cell);
+      rows.push(row);
+      return rows.filter(r => r.some(c => clean(c) !== ""));
+    }
+
+    function csvToObjects(text) {
+      const rows = parseCSV(text);
+      if (rows.length === 0) return [];
+      const headers = rows[0].map((h, index) => clean(h) || `Column ${index + 1}`);
+      return rows.slice(1).map(values => {
+        const obj = {};
+        headers.forEach((header, index) => { obj[header] = values[index] ?? ""; });
+        return obj;
+      }).filter(row => Object.values(row).some(v => clean(v) !== ""));
+    }
+
+    function buildProject(rows) {
+      const project = {};
+      if (!rows.length) return project;
+
+      const first = rows[0];
+      const headers = Object.keys(first);
+      const keyHeader = headers.find(h => ["field", "key", "label", "name", "item", "property"].includes(normalize(h))) || headers[0];
+      const valueHeader = headers.find(h => ["value", "data", "detail", "details", "description"].includes(normalize(h))) || headers[1];
+
+      // Supports vertical format: Field | Value
+      if (keyHeader && valueHeader && rows.length >= 2) {
+        rows.forEach(row => {
+          const key = clean(row[keyHeader]);
+          const value = clean(row[valueHeader]);
+          if (key) project[normalize(key)] = value;
+        });
+      }
+
+      // Supports horizontal format: Project Name | Contractor | Reporting Date | ...
+      rows.forEach(row => {
+        Object.keys(row).forEach(header => {
+          const value = clean(row[header]);
+          if (value) project[normalize(header)] = value;
+        });
+      });
+
+      return project;
+    }
+
+    function projectValue(keys, fallback = "-") {
+      for (const key of keys) {
+        const value = state.project[normalize(key)];
+        if (value !== undefined && value !== null && String(value).trim() !== "") return value;
+      }
+      return fallback;
+    }
+
+    function buildActualIndexes(timeRows, matchCounts = {}) {
+      const indexes = {
+        full: new Map(),
+        lotItem: new Map(),
+        roadItem: new Map(),
+        itemOnly: new Map()
+      };
+
+      state.meta.actualValueMode = "quantity";
+      const usesCumulativeValues = timeRows.some(row => Object.keys(row).some(header => {
+        const h = normalize(header);
+        return h.includes("cumulative") || h.includes("todate") || h.includes("totalactual");
+      }));
+
+      const itemNoCounts = matchCounts.itemNoCounts || matchCounts;
+      const lotItemCounts = matchCounts.lotItemCounts || new Map();
+      const roadItemCounts = matchCounts.roadItemCounts || new Map();
+      let actualRows = 0;
+
+      timeRows.forEach(row => {
+        const rw = clean(pick(row, ["RW", "R/W", "Right of Way", "ICB_Code", "ICB Code", "ICB"]));
+        const lot = clean(pick(row, ["Lot", "Package"]));
+        const roadLine = clean(pick(row, ["Road Line", "Road", "Line", "Roadline"]));
+        const itemNo = clean(pick(row, ["Item No.", "Item No", "Item", "BOQ Item", "BOQ Item No."]));
+        const rawActual = extractRawActualValue(row);
+
+        if (!itemNo && !roadLine) return;
+        if (rawActual !== 0) actualRows++;
+
+        const fullKey = makeFullKey(rw, lot, roadLine, itemNo);
+        const lotItemKey = makeLotItemKey(lot, itemNo);
+        const roadItemKey = makeRoadItemKey(roadLine, itemNo);
+        const itemOnlyKey = makeItemOnlyKey(itemNo);
+
+        const addValue = (map, key) => {
+          if (!key) return;
+          const previous = map.get(key) || { value: 0, rows: 0 };
+          map.set(key, {
+            value: usesCumulativeValues ? Math.max(previous.value, rawActual) : previous.value + rawActual,
+            rows: previous.rows + 1
+          });
+        };
+
+        addValue(indexes.full, fullKey);
+        if ((lotItemCounts.get(lotItemKey) || 0) === 1) addValue(indexes.lotItem, lotItemKey);
+        if ((roadItemCounts.get(roadItemKey) || 0) === 1) addValue(indexes.roadItem, roadItemKey);
+        if ((itemNoCounts.get(itemOnlyKey) || 0) === 1) addValue(indexes.itemOnly, itemOnlyKey);
+      });
+
+      state.meta.worksheet3Rows = timeRows.length;
+      state.meta.worksheet3ActualRows = actualRows;
+      return indexes;
+    }
+
+    function buildBOQLookup(items) {
+      const itemOnlyCounts = new Map();
+      const lotItemCounts = new Map();
+      const roadItemCounts = new Map();
+
+      items.forEach(item => {
+        const itemOnlyKey = makeItemOnlyKey(item.itemNo);
+        const lotItemKey = makeLotItemKey(item.lot, item.itemNo);
+        const roadItemKey = makeRoadItemKey(item.roadLine, item.itemNo);
+        if (itemOnlyKey) itemOnlyCounts.set(itemOnlyKey, (itemOnlyCounts.get(itemOnlyKey) || 0) + 1);
+        if (lotItemKey) lotItemCounts.set(lotItemKey, (lotItemCounts.get(lotItemKey) || 0) + 1);
+        if (roadItemKey) roadItemCounts.set(roadItemKey, (roadItemCounts.get(roadItemKey) || 0) + 1);
+      });
+
+      const lookup = { full: new Map(), lotItem: new Map(), roadItem: new Map(), itemOnly: new Map() };
+      items.forEach(item => {
+        lookup.full.set(makeFullKey(item.rw, item.lot, item.roadLine, item.itemNo), item);
+        const lotItemKey = makeLotItemKey(item.lot, item.itemNo);
+        const roadItemKey = makeRoadItemKey(item.roadLine, item.itemNo);
+        const itemOnlyKey = makeItemOnlyKey(item.itemNo);
+        if ((lotItemCounts.get(lotItemKey) || 0) === 1) lookup.lotItem.set(lotItemKey, item);
+        if ((roadItemCounts.get(roadItemKey) || 0) === 1) lookup.roadItem.set(roadItemKey, item);
+        if ((itemOnlyCounts.get(itemOnlyKey) || 0) === 1) lookup.itemOnly.set(itemOnlyKey, item);
+      });
+      return lookup;
+    }
+
+    function findBOQItem(lookup, rw, lot, roadLine, itemNo) {
+      return lookup.full.get(makeFullKey(rw, lot, roadLine, itemNo))
+        || lookup.lotItem.get(makeLotItemKey(lot, itemNo))
+        || lookup.roadItem.get(makeRoadItemKey(roadLine, itemNo))
+        || lookup.itemOnly.get(makeItemOnlyKey(itemNo))
+        || null;
+    }
+
+    function detectActualValueMode(timeRows) {
+      // Worksheet 3 was changed from Fill Amount to Fill Quantity.
+      // Always treat the Input_record fill column as physical quantity, not money.
+      return "quantity";
+    }
+
+    function extractRawActualValue(row) {
+      // Input_record uses filled quantity. In the current test sheet this is column L
+      // with header Qty_Complete. If the header is changed or removed, the dashboard
+      // falls back to the 12th CSV field, which corresponds to Excel column L.
+      const headerValue = pick(row, [
+        "Qty_Complete",
+        "Qty Complete",
+        "QTY_COMPLETE",
+        "Quantity Complete",
+        "Quantity_Complete",
+        "Complete Quantity",
+        "Complete Qty",
+        "Completed Qty",
+        "Completed Quantity",
+        "Fill Quantity",
+        "Filled Quantity",
+        "Filled Qty",
+        "Fill Qty",
+        "Fill_Qty",
+        "Fill_Quantity",
+        "Quantity Filled",
+        "Qty Filled",
+        "Actual Quantity",
+        "Actual Qty",
+        "Actual",
+        "Quantity Done",
+        "Done Quantity",
+        "Completion Quantity",
+        "Installed Quantity",
+        "This Month Quantity",
+        "This Month Qty",
+        "Period Quantity",
+        "Period Qty",
+        "Cumulative Quantity",
+        "Cumulative Qty",
+        "Total Actual Quantity",
+        "Qty",
+        "Quantity",
+        "Est_Complete",
+        "Est Complete",
+        "Estimated Complete"
+      ], "");
+
+      if (clean(headerValue) !== "") return toNumber(headerValue);
+
+      const values = Object.values(row || {});
+      return toNumber(values[11] ?? 0);
+    }
+
+    function convertActualValue(rawValue, item) {
+      const actualQty = Math.max(0, Number.isFinite(rawValue) ? rawValue : 0);
+      const progress = item.quantity > 0 ? safePct((actualQty / item.quantity) * 100) : 0;
+      const earnedAmount = item.rate > 0
+        ? actualQty * item.rate
+        : item.amount * (progress / 100);
+      return { actualQty, earnedAmount, progress, rawValue: actualQty };
+    }
+
+    function extractActualMeasure(row, item) {
+      return convertActualValue(extractRawActualValue(row), item);
+    }
+
+    function getActualIndexRecord(actualIndexes, item) {
+      const fullKey = makeFullKey(item.rw, item.lot, item.roadLine, item.itemNo);
+      const lotItemKey = makeLotItemKey(item.lot, item.itemNo);
+      const roadItemKey = makeRoadItemKey(item.roadLine, item.itemNo);
+      const itemOnlyKey = makeItemOnlyKey(item.itemNo);
+      return actualIndexes.full.get(fullKey)
+        || actualIndexes.lotItem.get(lotItemKey)
+        || actualIndexes.roadItem.get(roadItemKey)
+        || actualIndexes.itemOnly.get(itemOnlyKey)
+        || { value: 0, rows: 0 };
+    }
+
+    function buildSCurveTimeline(timeRows, boqItems) {
+      const totalAmount = boqItems.reduce((sum, item) => sum + item.amount, 0);
+      const lookup = buildBOQLookup(boqItems);
+      const daily = new Map();
+
+      timeRows.forEach(row => {
+        const date = parseSheetDate(pick(row, ["Date", "Report Date", "Work Date", "Inspection Date"]));
+        if (!date) return;
+
+        const rw = clean(pick(row, ["RW", "R/W", "Right of Way", "ICB_Code", "ICB Code", "ICB"]));
+        const lot = clean(pick(row, ["Lot", "Package"]));
+        const roadLine = clean(pick(row, ["Road Line", "Road", "Line", "Roadline"]));
+        const itemNo = clean(pick(row, ["Item No.", "Item No", "Item", "BOQ Item", "BOQ Item No."]));
+        const rawActual = extractRawActualValue(row);
+        if (!rawActual || (!itemNo && !roadLine)) return;
+
+        const item = findBOQItem(lookup, rw, lot, roadLine, itemNo);
+        if (!item) return;
+
+        const measure = extractActualMeasure(row, item);
+        const key = formatDateKey(date);
+        const bucket = daily.get(key) || { date: key, dailyQty: 0, dailyAmount: 0, rows: 0 };
+        bucket.dailyQty += measure.actualQty;
+        bucket.dailyAmount += measure.earnedAmount;
+        bucket.rows += 1;
+        daily.set(key, bucket);
+      });
+
+      let cumulativeAmount = 0;
+      let cumulativeQty = 0;
+      return [...daily.values()].sort((a, b) => a.date.localeCompare(b.date)).map(row => {
+        cumulativeAmount += row.dailyAmount;
+        cumulativeQty += row.dailyQty;
+        return {
+          ...row,
+          cumulativeQty,
+          cumulativeAmount,
+          progress: totalAmount > 0 ? safePct((cumulativeAmount / totalAmount) * 100) : 0
+        };
+      });
+    }
+
+    function buildLotSCurveTimeline(timeRows, boqItems) {
+      const totalsByLot = new Map();
+      boqItems.forEach(item => {
+        const lot = clean(item.lot) || "-";
+        totalsByLot.set(lot, (totalsByLot.get(lot) || 0) + item.amount);
+      });
+
+      const lookup = buildBOQLookup(boqItems);
+      const dailyByLot = new Map();
+      const dates = new Set();
+
+      timeRows.forEach(row => {
+        const date = parseSheetDate(pick(row, ["Date", "Report Date", "Work Date", "Inspection Date"]));
+        if (!date) return;
+
+        const rw = clean(pick(row, ["RW", "R/W", "Right of Way", "ICB_Code", "ICB Code", "ICB"]));
+        const lotFromRow = clean(pick(row, ["Lot", "Package"]));
+        const roadLine = clean(pick(row, ["Road Line", "Road", "Line", "Roadline"]));
+        const itemNo = clean(pick(row, ["Item No.", "Item No", "Item", "BOQ Item", "BOQ Item No."]));
+        const rawActual = extractRawActualValue(row);
+        if (!rawActual || (!itemNo && !roadLine)) return;
+
+        const item = findBOQItem(lookup, rw, lotFromRow, roadLine, itemNo);
+        if (!item) return;
+
+        const measure = extractActualMeasure(row, item);
+        const lot = clean(item.lot) || lotFromRow || "-";
+        const dateKey = formatDateKey(date);
+        dates.add(dateKey);
+
+        if (!dailyByLot.has(lot)) dailyByLot.set(lot, new Map());
+        const lotDaily = dailyByLot.get(lot);
+        lotDaily.set(dateKey, (lotDaily.get(dateKey) || 0) + measure.earnedAmount);
+      });
+
+      const sortedDates = [...dates].sort((a, b) => a.localeCompare(b));
+      const lots = [...totalsByLot.keys()].sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true }));
+
+      return lots.map(lot => {
+        const totalAmount = totalsByLot.get(lot) || 0;
+        const lotDaily = dailyByLot.get(lot) || new Map();
+        let cumulativeAmount = 0;
+        const points = sortedDates.map(date => {
+          const dailyAmount = lotDaily.get(date) || 0;
+          cumulativeAmount += dailyAmount;
+          return {
+            date,
+            dailyAmount,
+            cumulativeAmount,
+            progress: totalAmount > 0 ? safePct((cumulativeAmount / totalAmount) * 100) : 0
+          };
+        });
+
+        return {
+          lot,
+          totalAmount,
+          points,
+          finalProgress: points.length ? points[points.length - 1].progress : 0
+        };
+      }).filter(curve => curve.totalAmount > 0 && curve.points.length);
+    }
+
+    function makeFullKey(rw, lot, roadLine, itemNo) {
+      return [rw, lot, roadLine, itemNo].map(normalize).join("|");
+    }
+
+    function makeLotItemKey(lot, itemNo) {
+      const lotKey = normalize(lot);
+      const item = normalize(itemNo);
+      return lotKey && item ? `${lotKey}|${item}` : "";
+    }
+
+    function makeRoadItemKey(roadLine, itemNo) {
+      const road = normalize(roadLine);
+      const item = normalize(itemNo);
+      return road && item ? `${road}|${item}` : "";
+    }
+
+    function makeItemOnlyKey(itemNo) {
+      return normalize(itemNo);
+    }
+
+    function buildBOQ(rows, actualIndexes) {
+      const rawItems = rows.map(row => {
+        const rw = clean(pick(row, ["RW", "R/W", "Right of Way", "ICB_Code", "ICB Code", "ICB"]));
+        const lot = clean(pick(row, ["Lot", "Package"]));
+        const roadLine = clean(pick(row, ["Road Line", "Road", "Line", "Roadline"]));
+        const itemNo = clean(pick(row, ["Item No.", "Item No", "Item", "BOQ Item", "BOQ Item No."]));
+        const description = clean(pick(row, ["Description", "Item Description", "BOQ Description", "Work Description"]));
+        const unit = clean(pick(row, ["Unit", "UOM", "Measure"]));
+        const quantity = toNumber(pick(row, ["Quantity", "Qty", "Plan Quantity", "Planned Quantity", "BOQ Quantity"]));
+        const rate = toNumber(pick(row, ["Rate (USD)", "Rate", "Unit Rate", "Price"]));
+        let amount = toNumber(pick(row, ["Amount (USD)", "Amount", "Total", "BOQ Amount", "Value"]));
+        if (!amount && quantity && rate) amount = quantity * rate;
+
+        return { rw, lot, roadLine, itemNo, description, unit, quantity, rate, amount };
+      });
+
+      state.meta.subtotalRows = rawItems.filter(item => !item.itemNo && item.description.toLowerCase().startsWith("sub-total")).length;
+
+      return rawItems
+        .filter(item => item.itemNo && !item.description.toLowerCase().startsWith("sub-total"))
+        .map(item => {
+          const actualRecord = getActualIndexRecord(actualIndexes, item);
+          const measure = convertActualValue(actualRecord.value, item);
+          return {
+            ...item,
+            actualQty: measure.actualQty,
+            progress: measure.progress,
+            earnedAmount: measure.earnedAmount,
+            actualSourceValue: measure.rawValue,
+            actualRecordRows: actualRecord.rows || 0
+          };
+        });
+    }
+
+    function groupBy(items, keyFn) {
+      const map = new Map();
+      items.forEach(item => {
+        const key = keyFn(item);
+        if (!map.has(key)) map.set(key, []);
+        map.get(key).push(item);
+      });
+      return map;
+    }
+
+    function summarizeRoadLines(items) {
+      const grouped = groupBy(items, item => `${item.lot || "-"}|||${item.roadLine || "-"}`);
+      return [...grouped.entries()].map(([key, rows]) => {
+        const [lot, roadLine] = key.split("|||");
+        const quantity = rows.reduce((sum, item) => sum + item.quantity, 0);
+        const actualQty = rows.reduce((sum, item) => sum + item.actualQty, 0);
+        const amount = rows.reduce((sum, item) => sum + item.amount, 0);
+        const earnedAmount = rows.reduce((sum, item) => sum + item.earnedAmount, 0);
+        const progress = amount > 0 ? safePct((earnedAmount / amount) * 100) : 0;
+        return { lot, roadLine, items: rows.length, quantity, actualQty, amount, earnedAmount, progress };
+      }).sort((a, b) => String(a.lot).localeCompare(String(b.lot), undefined, { numeric: true }) || String(a.roadLine).localeCompare(String(b.roadLine), undefined, { numeric: true }));
+    }
+
+    function summarizeLots(items) {
+      const grouped = groupBy(items, item => item.lot || "-");
+      return [...grouped.entries()].map(([lot, rows]) => {
+        const amount = rows.reduce((sum, item) => sum + item.amount, 0);
+        const earnedAmount = rows.reduce((sum, item) => sum + item.earnedAmount, 0);
+        const progress = amount > 0 ? safePct((earnedAmount / amount) * 100) : 0;
+        return { lot, items: rows.length, amount, earnedAmount, progress };
+      }).sort((a, b) => String(a.lot).localeCompare(String(b.lot), undefined, { numeric: true }));
+    }
+
+    function statusClass(progress) {
+      if (progress >= 90) return "green";
+      if (progress > 0) return "yellow";
+      return "muted";
+    }
+
+    function setStatus(type, title, text) {
+      const dot = document.getElementById("statusDot");
+      const statusTitle = document.getElementById("statusTitle");
+      const statusText = document.getElementById("statusText");
+      if (!dot || !statusTitle || !statusText) return;
+
+      dot.className = `status-dot ${type === "ready" ? "ready" : type === "error" ? "error" : ""}`;
+      statusTitle.textContent = title;
+      statusText.textContent = text;
+    }
+
+    function renderProjectInfo() {
+      const projectName = projectValue(["Project Name", "Project", "Name"], "Road BOQ Progress Dashboard");
+      document.getElementById("projectTitle").textContent = projectName;
+    }
+
+    function renderLatestInputRows() {
+      const list = document.getElementById("latestInputRows");
+      const pill = document.getElementById("latestRowsPill");
+      if (!list) return;
+
+      const latest = state.timeRows
+        .map((row, index) => ({ row, index }))
+        .filter(({ row }) => Object.values(row).some(value => clean(value) !== ""))
+        .slice(-4)
+        .reverse();
+
+      if (pill) pill.textContent = `${latest.length}/4`;
+
+      if (!latest.length) {
+        list.innerHTML = `<div class="empty latest-empty">No Input_record rows yet.</div>`;
+        return;
+      }
+
+      list.innerHTML = latest.map(({ row }) => {
+        const date = clean(pick(row, ["Date", "Report Date", "Input Date"], "-"));
+        const reportNo = clean(pick(row, ["Report_No", "Report_No.", "Report No", "Report No.", "Report Number"], ""));
+        const lot = clean(pick(row, ["Lot", "Package"], "-"));
+        const roadLine = clean(pick(row, ["Roadline", "Road Line", "Road", "Line"], "-"));
+        const item = clean(pick(row, ["Item", "Item No", "Item No.", "BOQ Item", "BOQ Item No."], "-"));
+        const task = clean(pick(row, ["Work_Task", "Work Task", "Task", "Description"], ""));
+        const fromSta = clean(pick(row, ["Re_From_Sta", "From_Sta", "From Sta", "Re From Sta"], ""));
+        const toSta = clean(pick(row, ["Re_To_Sta", "To_Sta", "To Sta", "Re To Sta"], ""));
+        const side = clean(pick(row, ["Side"], ""));
+        const qty = extractRawActualValue(row);
+        const station = fromSta || toSta ? `${fromSta || "-"} → ${toSta || "-"}` : "No station";
+        const meta = [date, reportNo].filter(Boolean).join(" · ");
+        const title = `Lot ${lot} · ${roadLine} · Item ${item}`;
+        const foot = [station, side ? `Side ${side}` : ""].filter(Boolean).join(" · ");
+
+        return `
+          <article class="latest-row">
+            <div class="latest-row-head">
+              <div>
+                <div class="latest-row-title">${escapeHTML(title)}</div>
+                <div class="latest-row-meta">${escapeHTML(meta || "Latest record")}</div>
+              </div>
+              <span class="mini-pill green">${escapeHTML(formatQuantity(qty))}</span>
+            </div>
+            ${task ? `<div class="latest-row-task">${escapeHTML(task)}</div>` : ""}
+            <div class="latest-row-foot">
+              <span>${escapeHTML(foot)}</span>
+              <span>Qty</span>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function renderKPIs() {
+      const totalAmount = state.boqItems.reduce((sum, item) => sum + item.amount, 0);
+      const earnedAmount = state.boqItems.reduce((sum, item) => sum + item.earnedAmount, 0);
+      const progress = totalAmount > 0 ? safePct((earnedAmount / totalAmount) * 100) : 0;
+      const totalQty = state.boqItems.reduce((sum, item) => sum + item.quantity, 0);
+      const actualQty = state.boqItems.reduce((sum, item) => sum + item.actualQty, 0);
+      const lots = new Set(state.boqItems.map(item => item.lot).filter(Boolean)).size;
+      const roads = new Set(state.boqItems.map(item => item.roadLine).filter(Boolean)).size;
+      const zeroItems = state.boqItems.filter(item => item.actualQty === 0).length;
+
+      const cards = [
+        { label: "Overall Progress", value: `${progress.toFixed(1)}%`, sub: `${formatMoney(earnedAmount)} earned`, cls: statusClass(progress) },
+        { label: "Planned Quantity", value: formatNumber(totalQty), sub: "All BOQ item quantities", cls: "blue" },
+        { label: "Actual Quantity", value: formatQuantity(actualQty), sub: `${state.meta.worksheet3ActualRows} actual rows in Input_record`, cls: actualQty > 0 ? "green" : "muted" },
+        { label: "Lots / Road Lines", value: `${lots} / ${roads}`, sub: "From boq_plan_quantity", cls: "blue" }
+      ];
+
+      document.getElementById("kpiGrid").innerHTML = cards.map(card => `
+        <article class="kpi-card">
+          <div class="kpi-head">${escapeHTML(card.label)}</div>
+          <div class="kpi-number">${escapeHTML(card.value)}</div>
+          <div class="kpi-sub"><span class="mini-pill ${card.cls}">${escapeHTML(card.sub)}</span></div>
+        </article>
+      `).join("");
+
+      const status = document.getElementById("progressStatus");
+      if (status) {
+        status.textContent = progress > 0 ? `${progress.toFixed(1)}% Actual` : "0% Actual";
+        status.className = `status-pill ${statusClass(progress)}`;
+      }
+    }
+
+    function populateFilters() {
+      state.filters.lot = "all";
+      state.filters.roadLine = "all";
+      state.filters.search = "";
+    }
+
+    function filteredItems() {
+      const search = state.filters.search.toLowerCase();
+      return state.boqItems.filter(item => {
+        const lotOk = state.filters.lot === "all" || item.lot === state.filters.lot;
+        const roadOk = state.filters.roadLine === "all" || item.roadLine === state.filters.roadLine;
+        const text = `${item.itemNo} ${item.description} ${item.unit} ${item.rw} ${item.lot} ${item.roadLine}`.toLowerCase();
+        const searchOk = !search || text.includes(search);
+        return lotOk && roadOk && searchOk;
+      });
+    }
+
+    function renderSummary() {
+      const items = filteredItems();
+      const summary = summarizeRoadLines(items);
+      const tbody = document.getElementById("summaryTable");
+
+      if (!summary.length) {
+        tbody.innerHTML = `<tr><td colspan="8"><div class="empty">No road lines match the current filters.</div></td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = summary.map(row => `
+        <tr>
+          <td><strong>Lot ${escapeHTML(row.lot)}</strong></td>
+          <td><strong>${escapeHTML(row.roadLine)}</strong></td>
+          <td class="right">${formatNumber(row.items)}</td>
+          <td class="right">${formatQuantity(row.quantity)}</td>
+          <td class="right"><strong>${formatQuantity(row.actualQty)}</strong></td>
+          <td class="right">${formatMoney(row.amount)}</td>
+          <td class="right">${formatMoney(row.earnedAmount)}</td>
+          <td>
+            <span class="status-pill ${statusClass(row.progress)}">${row.progress.toFixed(1)}%</span>
+            <div class="progress-bar"><div class="progress-fill" style="width:${row.progress}%"></div></div>
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    function renderBOQTable() {
+      const items = filteredItems();
+      const tbody = document.getElementById("boqTable");
+      document.getElementById("itemCountPill").textContent = `${formatNumber(items.length)} items`;
+
+      if (!items.length) {
+        tbody.innerHTML = `<tr><td colspan="11"><div class="empty">No BOQ items match the current filters.</div></td></tr>`;
+        document.getElementById("tableNote").textContent = "";
+        return;
+      }
+
+      const limit = 600;
+      const visible = items.slice(0, limit);
+      tbody.innerHTML = visible.map(item => `
+        <tr>
+          <td>${escapeHTML(item.rw)}</td>
+          <td>${escapeHTML(item.lot)}</td>
+          <td><strong>${escapeHTML(item.roadLine)}</strong></td>
+          <td>${escapeHTML(item.itemNo)}</td>
+          <td>${escapeHTML(item.description)}</td>
+          <td>${escapeHTML(item.unit)}</td>
+          <td class="right">${formatQuantity(item.quantity)}</td>
+          <td class="right"><strong>${formatQuantity(item.actualQty)}</strong></td>
+          <td class="right">${formatMoney(item.rate)}</td>
+          <td class="right">${formatMoney(item.amount)}</td>
+          <td>
+            <span class="mini-pill ${statusClass(item.progress)}">${item.progress.toFixed(1)}%</span>
+            <div class="progress-bar"><div class="progress-fill" style="width:${item.progress}%"></div></div>
+          </td>
+        </tr>
+      `).join("");
+
+      document.getElementById("tableNote").textContent = items.length > limit
+        ? `Showing first ${formatNumber(limit)} of ${formatNumber(items.length)} matching items. Use Lot, Road Line, or Search to narrow the table.`
+        : `Showing ${formatNumber(items.length)} matching items.`;
+    }
+
+    function renderCharts() {
+      const items = filteredItems();
+      const lotData = summarizeLots(items);
+      const lotCurves = buildLotSCurveTimeline(state.timeRows, items);
+      state.lotTimeline = lotCurves;
+      drawSCurveChart("progressChart", state.timeline);
+      drawLotAmountChart("lotChart", lotData);
+      renderLotSCurveCards(lotCurves);
+      drawItemProgressClusterChart("itemProgressChart", items);
+      startSCurveBlink();
+    }
+
+    function startSCurveBlink() {
+      if (scurveBlinkFrame) return;
+      const animate = () => {
+        if (state.timeline.length) {
+          drawSCurveChart("progressChart", state.timeline);
+        }
+        if (state.lotTimeline && state.lotTimeline.length) {
+          state.lotTimeline.forEach((curve, index) => {
+            drawSingleLotSCurveChart(`lotSCurveCanvas${index}`, curve);
+          });
+        }
+        scurveBlinkFrame = requestAnimationFrame(animate);
+      };
+      scurveBlinkFrame = requestAnimationFrame(animate);
+    }
+
+    function renderAll() {
+      renderProjectInfo();
+      renderLatestInputRows();
+      renderKPIs();
+      populateFilters();
+      renderSummary();
+      renderBOQTable();
+      renderCharts();
+    }
+
+    function updateFilteredViews() {
+      renderSummary();
+      renderBOQTable();
+      renderCharts();
+    }
+
+    const CHART_THEME = {
+      ink: "#102016",
+      text: "#1e2e24",
+      muted: "#637267",
+      line: "rgba(203, 217, 207, 0.72)",
+      lineSoft: "rgba(220, 232, 223, 0.52)",
+      surface: "#ffffff",
+      surfaceSoft: "#fbfdfb",
+      track: "#e6f1e9",
+      accent: "#16a34a",
+      accentDark: "#047857",
+      accentSoft: "rgba(22, 163, 74, 0.14)",
+      accentGlow: "rgba(22, 163, 74, 0.24)",
+      boq: "#2563eb",
+      boqDark: "#1e40af",
+      boqSoft: "rgba(37, 99, 235, 0.16)",
+      boqGlow: "rgba(37, 99, 235, 0.20)",
+      earned: "#16a34a",
+      earnedDark: "#047857",
+      earnedSoft: "rgba(22, 163, 74, 0.18)",
+      success: "#16a34a",
+      successDark: "#047857",
+      successSoft: "rgba(22, 163, 74, 0.18)",
+      bar: "#2563eb",
+      barDark: "#1d4ed8",
+      barLight: "#60a5fa",
+      barSoft: "rgba(37, 99, 235, 0.14)",
+      barTrack: "#eef4ff"
+    };
+
+    function drawSCurveChart(canvasId, data) {
+      const canvas = document.getElementById(canvasId);
+      const ctx = setupCanvas(canvas);
+      const width = canvas.clientWidth;
+      const height = canvas.clientHeight;
+      ctx.clearRect(0, 0, width, height);
+
+      if (!data.length) {
+        drawEmptyChart(ctx, width, height, "No dated filled-quantity records in Input_record");
+        return;
+      }
+
+      const pad = { left: 58, right: 32, top: 42, bottom: 56 };
+      const chartW = width - pad.left - pad.right;
+      const chartH = height - pad.top - pad.bottom;
+      const baseY = pad.top + chartH;
+      drawChartPanel(ctx, width, height, pad);
+      drawGrid(ctx, width, height, pad, 100, "%");
+
+      const firstTime = parseSheetDate(data[0].date).getTime();
+      const lastTime = parseSheetDate(data[data.length - 1].date).getTime();
+      const span = Math.max(1, lastTime - firstTime);
+      const x = row => pad.left + ((parseSheetDate(row.date).getTime() - firstTime) / span) * chartW;
+      const y = pct => baseY - (safePct(pct) / 100) * chartH;
+      const points = data.map(row => ({ x: x(row), y: y(row.progress), row }));
+
+      drawCurveArea(ctx, points, baseY, CHART_THEME.accent);
+      drawCurveLine(ctx, points, [CHART_THEME.accentDark, CHART_THEME.accent]);
+
+      const pointEvery = Math.max(1, Math.floor(data.length / 9));
+      points.forEach((point, i) => {
+        if (i % pointEvery !== 0 && i !== points.length - 1) return;
+        ctx.save();
+        ctx.fillStyle = "#f0fdf4";
+        ctx.strokeStyle = CHART_THEME.accent;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, i === points.length - 1 ? 5 : 3.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+      });
+
+      const last = data[data.length - 1];
+      const lastPoint = points[points.length - 1];
+      drawPulsePoint(ctx, lastPoint.x, lastPoint.y, 1);
+
+      drawValueBadge(ctx, `${last.progress.toFixed(1)}%`, Math.min(width - pad.right - 2, lastPoint.x + 44), Math.max(22, lastPoint.y - 18), "right", "success");
+
+      ctx.fillStyle = CHART_THEME.muted;
+      ctx.font = "600 12px 'Avenir Next', Avenir, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText("Actual cumulative progress", pad.left, 22);
+
+      const labels = [data[0], data[Math.floor(data.length / 2)], last];
+      ctx.textAlign = "center";
+      ctx.fillStyle = CHART_THEME.muted;
+      labels.forEach(row => {
+        ctx.fillText(formatShortDate(row.date), x(row), height - 18);
+      });
+    }
+
+    function drawRoadProgressChart(canvasId, data) {
+      const canvas = document.getElementById(canvasId);
+      const ctx = setupCanvas(canvas);
+      const width = canvas.clientWidth;
+      const height = canvas.clientHeight;
+      ctx.clearRect(0, 0, width, height);
+
+      if (!data.length) {
+        drawEmptyChart(ctx, width, height, "No road line data");
+        return;
+      }
+
+      const rows = data.slice(0, 18);
+      const pad = { left: 52, right: 24, top: 34, bottom: 74 };
+      const chartW = width - pad.left - pad.right;
+      const chartH = height - pad.top - pad.bottom;
+      const barGap = Math.max(8, Math.min(16, chartW / rows.length * .22));
+      const barW = Math.max(10, (chartW / rows.length) - barGap);
+
+      drawChartPanel(ctx, width, height, pad);
+      drawGrid(ctx, width, height, pad, 100, "%");
+
+      rows.forEach((row, i) => {
+        const x = pad.left + (i * chartW / rows.length) + barGap / 2;
+        const h = Math.max(row.progress > 0 ? 4 : 2, (safePct(row.progress) / 100) * chartH);
+        const y = pad.top + chartH - h;
+        const trackX = x;
+        const trackY = pad.top;
+
+        ctx.fillStyle = "rgba(224, 239, 229, 0.78)";
+        roundRect(ctx, trackX, trackY, barW, chartH, Math.min(10, barW / 2), true);
+
+        drawVerticalBar(ctx, x, y, barW, h, row.progress > 0 ? CHART_THEME.accent : "#cbd9cf");
+
+        ctx.save();
+        ctx.translate(x + barW / 2, height - 18);
+        ctx.rotate(-Math.PI / 5.5);
+        ctx.fillStyle = CHART_THEME.muted;
+        ctx.font = "600 11px 'Avenir Next', Avenir, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+        ctx.textAlign = "right";
+        ctx.fillText(row.roadLine, 0, 0);
+        ctx.restore();
+      });
+
+      ctx.fillStyle = CHART_THEME.muted;
+      ctx.font = "600 12px 'Avenir Next', Avenir, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText("Progress %", pad.left, 20);
+    }
+
+    function drawLotAmountChart(canvasId, data) {
+      const canvas = document.getElementById(canvasId);
+      const ctx = setupCanvas(canvas);
+      const width = canvas.clientWidth;
+      const height = canvas.clientHeight;
+      ctx.clearRect(0, 0, width, height);
+
+      if (!data.length) {
+        drawEmptyChart(ctx, width, height, "No lot data");
+        return;
+      }
+
+      const rows = data;
+      const max = niceMax(Math.max(...rows.map(row => Math.max(row.amount, row.earnedAmount)), 1));
+      const pad = { left: 72, right: 24, top: 44, bottom: 58 };
+      const chartW = width - pad.left - pad.right;
+      const chartH = height - pad.top - pad.bottom;
+      const groupW = chartW / rows.length;
+      const pairGap = Math.max(6, Math.min(10, groupW * 0.08));
+      const barW = Math.max(12, Math.min(30, (groupW * 0.54 - pairGap) / 2));
+      const pairW = barW * 2 + pairGap;
+
+      drawChartPanel(ctx, width, height, pad);
+      drawGrid(ctx, width, height, pad, max, "money");
+
+      rows.forEach((row, i) => {
+        const groupX = pad.left + groupW * i + (groupW - pairW) / 2;
+        const boqX = groupX;
+        const earnedX = groupX + barW + pairGap;
+
+        ctx.fillStyle = "rgba(240, 245, 241, 0.78)";
+        roundRect(ctx, boqX, pad.top, barW, chartH, Math.min(10, barW / 2), true);
+        roundRect(ctx, earnedX, pad.top, barW, chartH, Math.min(10, barW / 2), true);
+
+        const amountH = Math.max(row.amount > 0 ? 4 : 2, (row.amount / max) * chartH);
+        const amountY = pad.top + chartH - amountH;
+        drawVerticalBar(ctx, boqX, amountY, barW, amountH, CHART_THEME.boq);
+
+        const earnedH = Math.max(row.earnedAmount > 0 ? 4 : 2, (row.earnedAmount / max) * chartH);
+        const earnedY = pad.top + chartH - earnedH;
+        drawVerticalBar(ctx, earnedX, earnedY, barW, earnedH, row.earnedAmount > 0 ? CHART_THEME.earned : "#dce8df");
+
+        ctx.fillStyle = CHART_THEME.muted;
+        ctx.font = "600 12px 'Avenir Next', Avenir, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(`Lot ${row.lot}`, groupX + pairW / 2, height - 20);
+      });
+
+      ctx.font = "700 12px 'Avenir Next', Avenir, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillStyle = CHART_THEME.boq;
+      roundRect(ctx, pad.left, 15, 12, 8, 4, true);
+      ctx.fillText("BOQ Amount", pad.left + 18, 23);
+      ctx.fillStyle = CHART_THEME.earned;
+      roundRect(ctx, pad.left + 122, 15, 12, 8, 4, true);
+      ctx.fillText("Earned", pad.left + 140, 23);
+    }
+
+    function getBOQGroupCode(itemNo) {
+      const text = clean(itemNo).toUpperCase().replace(/\s+/g, "");
+      const match = text.match(/^B(\d{2})/);
+      return match ? `B${match[1]}` : "";
+    }
+
+    function buildBOQItemGroups(items) {
+      const grouped = new Map();
+
+      items.forEach(item => {
+        const groupCode = getBOQGroupCode(item.itemNo);
+        if (!groupCode) return;
+
+        if (!grouped.has(groupCode)) {
+          grouped.set(groupCode, {
+            groupCode,
+            itemNo: groupCode,
+            description: "",
+            unit: "",
+            itemCount: 0,
+            quantity: 0,
+            actualQty: 0,
+            amount: 0,
+            earnedAmount: 0,
+            progress: 0
+          });
+        }
+
+        const group = grouped.get(groupCode);
+        group.itemCount += 1;
+        group.quantity += item.quantity || 0;
+        group.actualQty += item.actualQty || 0;
+        group.amount += item.amount || 0;
+        group.earnedAmount += item.earnedAmount || 0;
+      });
+
+      return [...grouped.values()]
+        .map(group => {
+          group.progress = group.amount > 0
+            ? safePct((group.earnedAmount / group.amount) * 100)
+            : group.quantity > 0
+              ? safePct((group.actualQty / group.quantity) * 100)
+              : 0;
+          return group;
+        })
+        .sort((a, b) => a.groupCode.localeCompare(b.groupCode, undefined, { numeric: true }));
+    }
+
+    function drawItemProgressClusterChart(canvasId, items) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+
+      const ctx = setupCanvas(canvas);
+      const width = canvas.clientWidth;
+      const height = canvas.clientHeight;
+      ctx.clearRect(0, 0, width, height);
+
+      const pill = document.getElementById("itemChartPill");
+      const note = document.getElementById("itemChartNote");
+      const rows = buildBOQItemGroups(items.filter(item => item.quantity > 0));
+
+      if (pill) pill.textContent = `${formatNumber(rows.length)} groups`;
+      if (note) {
+        note.textContent = rows.length
+          ? `Showing BOQ item progress grouped by B-code from the current filter.`
+          : "";
+      }
+
+      if (!rows.length) {
+        drawEmptyChart(ctx, width, height, "No BOQ group progress data");
+        return;
+      }
+
+      const pad = { left: 185, right: 215, top: 62, bottom: 34 };
+      const chartW = Math.max(150, width - pad.left - pad.right);
+      const availableH = height - pad.top - pad.bottom;
+      const rowH = Math.max(30, Math.min(38, availableH / rows.length));
+      const barH = Math.max(13, Math.min(18, rowH * 0.50));
+
+      ctx.fillStyle = "rgba(255, 255, 255, 0.68)";
+      roundRect(ctx, 8, 8, width - 16, height - 16, 20, true);
+
+      ctx.fillStyle = CHART_THEME.ink;
+      ctx.font = "800 13px 'Avenir Next', Avenir, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText("BOQ Group", 18, 25);
+      ctx.fillText("Progress", pad.left, 25);
+      ctx.textAlign = "right";
+      ctx.fillText("Earned / BOQ", width - 18, 25);
+
+      ctx.strokeStyle = CHART_THEME.lineSoft;
+      ctx.lineWidth = 1;
+      [0, 25, 50, 75, 100].forEach(pct => {
+        const x = pad.left + (pct / 100) * chartW;
+        ctx.beginPath();
+        ctx.moveTo(x, pad.top - 14);
+        ctx.lineTo(x, pad.top + rows.length * rowH - 4);
+        ctx.stroke();
+
+        ctx.fillStyle = CHART_THEME.muted;
+        ctx.font = "600 10px 'Avenir Next', Avenir, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(`${pct}%`, x, pad.top - 23);
+      });
+
+      rows.forEach((item, i) => {
+        const yCenter = pad.top + i * rowH + rowH / 2;
+        const barY = yCenter - barH / 2;
+        const progress = safePct(item.progress);
+        const fillW = Math.max(progress > 0 ? 4 : 0, (progress / 100) * chartW);
+
+        if (i % 2 === 0) {
+          ctx.fillStyle = "rgba(250, 247, 241, 0.74)";
+          roundRect(ctx, 12, yCenter - rowH / 2 + 2, width - 24, rowH - 4, 12, true);
+        }
+
+        ctx.fillStyle = CHART_THEME.ink;
+        ctx.font = "900 14px 'Avenir Next', Avenir, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+        ctx.textAlign = "left";
+        ctx.fillText(item.groupCode, 18, yCenter - 3);
+
+        ctx.fillStyle = CHART_THEME.muted;
+        ctx.font = "650 10px 'Avenir Next', Avenir, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+        ctx.fillText(`${formatNumber(item.itemCount)} items`, 18, yCenter + 11);
+
+        ctx.fillStyle = CHART_THEME.barTrack;
+        roundRect(ctx, pad.left, barY, chartW, barH, 999, true);
+
+        if (fillW > 0) {
+          const fillGradient = ctx.createLinearGradient(pad.left, 0, pad.left + chartW, 0);
+          fillGradient.addColorStop(0, CHART_THEME.barDark);
+          fillGradient.addColorStop(.58, CHART_THEME.bar);
+          fillGradient.addColorStop(1, CHART_THEME.barLight);
+          ctx.fillStyle = fillGradient;
+          roundRect(ctx, pad.left, barY, fillW, barH, 999, true);
+        }
+
+        const pctText = `${progress.toFixed(0)}%`;
+        const pillW = 48;
+        const pillH = 19;
+        const pillX = Math.min(pad.left + chartW - pillW, Math.max(pad.left, pad.left + fillW - pillW / 2));
+        const pillY = yCenter - pillH / 2;
+        ctx.fillStyle = progress > 0 ? "#eff6ff" : "#f3f6f8";
+        roundRect(ctx, pillX, pillY, pillW, pillH, 999, true);
+        ctx.strokeStyle = progress > 0 ? "rgba(37, 99, 235, 0.24)" : "rgba(203, 217, 207, 0.85)";
+        ctx.lineWidth = 1;
+        roundRect(ctx, pillX, pillY, pillW, pillH, 999, false);
+        ctx.fillStyle = progress > 0 ? CHART_THEME.barDark : CHART_THEME.muted;
+        ctx.font = "800 10px 'Avenir Next', Avenir, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(pctText, pillX + pillW / 2, yCenter + 4);
+
+        ctx.fillStyle = "#506458";
+        ctx.font = "650 10px 'Avenir Next', Avenir, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+        ctx.textAlign = "right";
+        ctx.fillText(`${formatMoney(item.earnedAmount)} / ${formatMoney(item.amount)}`, width - 18, yCenter + 4);
+      });
+    }
+
+    function shortenText(ctx, text, maxWidth) {
+      const value = String(text || "");
+      if (ctx.measureText(value).width <= maxWidth) return value;
+      let output = value;
+      while (output.length > 3 && ctx.measureText(`${output}...`).width > maxWidth) {
+        output = output.slice(0, -1);
+      }
+      return `${output}...`;
+    }
+
+    function renderLotSCurveCards(curves) {
+      const container = document.getElementById("lotSCurveCards");
+      if (!container) return;
+
+      if (!curves.length) {
+        container.innerHTML = `<div class="empty">No lot S-curve data</div>`;
+        return;
+      }
+
+      container.innerHTML = curves.map((curve, index) => `
+        <article class="lot-scurve-card">
+          <h3>Lot ${escapeHTML(curve.lot)} · ${curve.finalProgress.toFixed(1)}%</h3>
+          <canvas id="lotSCurveCanvas${index}" aria-label="Lot ${escapeAttr(curve.lot)} S-curve"></canvas>
+        </article>
+      `).join("");
+
+      requestAnimationFrame(() => {
+        curves.forEach((curve, index) => {
+          drawSingleLotSCurveChart(`lotSCurveCanvas${index}`, curve);
+        });
+      });
+    }
+
+    function drawSingleLotSCurveChart(canvasId, curve) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+
+      const ctx = setupCanvas(canvas);
+      const width = canvas.clientWidth;
+      const height = canvas.clientHeight;
+      ctx.clearRect(0, 0, width, height);
+
+      const points = curve.points || [];
+      if (!points.length) {
+        drawEmptyChart(ctx, width, height, `No data for Lot ${curve.lot}`);
+        return;
+      }
+
+      const pad = { left: 50, right: 26, top: 34, bottom: 46 };
+      const chartW = width - pad.left - pad.right;
+      const chartH = height - pad.top - pad.bottom;
+      const baseY = pad.top + chartH;
+      drawChartPanel(ctx, width, height, pad);
+      drawGrid(ctx, width, height, pad, 100, "%");
+
+      const firstTime = parseSheetDate(points[0].date).getTime();
+      const lastTime = parseSheetDate(points[points.length - 1].date).getTime();
+      const span = Math.max(1, lastTime - firstTime);
+      const x = point => pad.left + ((parseSheetDate(point.date).getTime() - firstTime) / span) * chartW;
+      const y = pct => baseY - (safePct(pct) / 100) * chartH;
+      const chartPoints = points.map(point => ({ x: x(point), y: y(point.progress), row: point }));
+
+      drawCurveArea(ctx, chartPoints, baseY, CHART_THEME.accent);
+      drawCurveLine(ctx, chartPoints, [CHART_THEME.accentDark, CHART_THEME.accent]);
+
+      const last = points[points.length - 1];
+      const lastPoint = chartPoints[chartPoints.length - 1];
+      drawPulsePoint(ctx, lastPoint.x, lastPoint.y, .85);
+      drawValueBadge(ctx, `${last.progress.toFixed(1)}%`, Math.min(width - pad.right - 2, lastPoint.x + 48), Math.max(22, lastPoint.y - 16), "right", "success");
+
+      ctx.fillStyle = CHART_THEME.muted;
+      ctx.font = "600 12px 'Avenir Next', Avenir, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+      ctx.textAlign = "center";
+      const middle = points[Math.floor(points.length / 2)];
+      [points[0], middle, last].forEach(point => {
+        ctx.fillText(formatShortDate(point.date), x(point), height - 16);
+      });
+    }
+
+    function setupCanvas(canvas) {
+      const ratio = window.devicePixelRatio || 1;
+      const width = canvas.clientWidth;
+      const height = canvas.clientHeight;
+      canvas.width = Math.max(1, Math.floor(width * ratio));
+      canvas.height = Math.max(1, Math.floor(height * ratio));
+      const ctx = canvas.getContext("2d");
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+      return ctx;
+    }
+
+    function drawChartPanel(ctx, width, height, pad) {
+      const bg = ctx.createLinearGradient(0, 0, 0, height);
+      bg.addColorStop(0, "rgba(255, 255, 255, 0.82)");
+      bg.addColorStop(1, "rgba(251, 250, 247, 0.58)");
+      ctx.fillStyle = bg;
+      roundRect(ctx, 8, 8, width - 16, height - 16, 20, true);
+
+      ctx.strokeStyle = "rgba(220, 232, 223, 0.72)";
+      ctx.lineWidth = 1;
+      roundRect(ctx, 8.5, 8.5, width - 17, height - 17, 20, false);
+
+      const chartW = width - pad.left - pad.right;
+      const chartH = height - pad.top - pad.bottom;
+      ctx.fillStyle = "rgba(255, 255, 255, 0.34)";
+      roundRect(ctx, pad.left, pad.top, chartW, chartH, 14, true);
+    }
+
+    function drawGrid(ctx, width, height, pad, max, mode) {
+      const chartH = height - pad.top - pad.bottom;
+      const chartW = width - pad.left - pad.right;
+      const axisMax = Math.max(max || 1, 1);
+      ctx.lineWidth = 1;
+      ctx.font = "600 11px 'Avenir Next', Avenir, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+      ctx.textAlign = "right";
+
+      for (let i = 0; i <= 4; i++) {
+        const value = (axisMax / 4) * i;
+        const y = pad.top + chartH - (value / axisMax) * chartH;
+        ctx.strokeStyle = i === 0 ? CHART_THEME.line : CHART_THEME.lineSoft;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, y);
+        ctx.lineTo(pad.left + chartW, y);
+        ctx.stroke();
+        const label = mode === "money" ? compactMoney(value) : `${Math.round(value)}${mode === "%" ? "%" : ""}`;
+        ctx.fillStyle = CHART_THEME.muted;
+        ctx.fillText(label, pad.left - 10, y + 4);
+      }
+    }
+
+    function drawSmoothPath(ctx, points) {
+      if (!points.length) return;
+      ctx.moveTo(points[0].x, points[0].y);
+      if (points.length === 1) return;
+      if (points.length === 2) {
+        ctx.lineTo(points[1].x, points[1].y);
+        return;
+      }
+      for (let i = 1; i < points.length - 1; i++) {
+        const midX = (points[i].x + points[i + 1].x) / 2;
+        const midY = (points[i].y + points[i + 1].y) / 2;
+        ctx.quadraticCurveTo(points[i].x, points[i].y, midX, midY);
+      }
+      const last = points[points.length - 1];
+      const prev = points[points.length - 2];
+      ctx.quadraticCurveTo(prev.x, prev.y, last.x, last.y);
+    }
+
+    function drawCurveArea(ctx, points, baseY, color) {
+      if (!points.length) return;
+      const gradient = ctx.createLinearGradient(0, Math.min(...points.map(p => p.y)), 0, baseY);
+      gradient.addColorStop(0, color === CHART_THEME.accent ? "rgba(22, 163, 74, 0.20)" : "rgba(22, 163, 74, 0.18)");
+      gradient.addColorStop(.58, color === CHART_THEME.accent ? "rgba(134, 239, 172, 0.12)" : "rgba(22, 163, 74, 0.08)");
+      gradient.addColorStop(1, "rgba(255, 255, 255, 0.00)");
+
+      ctx.beginPath();
+      ctx.moveTo(points[0].x, baseY);
+      ctx.lineTo(points[0].x, points[0].y);
+      drawSmoothPath(ctx, points);
+      ctx.lineTo(points[points.length - 1].x, baseY);
+      ctx.closePath();
+      ctx.fillStyle = gradient;
+      ctx.fill();
+    }
+
+    function drawCurveLine(ctx, points, colors) {
+      if (!points.length) return;
+      const gradient = ctx.createLinearGradient(points[0].x, 0, points[points.length - 1].x, 0);
+      gradient.addColorStop(0, colors[0]);
+      gradient.addColorStop(.55, colors[1]);
+      gradient.addColorStop(1, "#4ade80");
+
+      ctx.save();
+      ctx.lineWidth = 4;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.shadowColor = CHART_THEME.accentGlow;
+      ctx.shadowBlur = 12;
+      ctx.shadowOffsetY = 4;
+      ctx.strokeStyle = gradient;
+      ctx.beginPath();
+      drawSmoothPath(ctx, points);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawPulsePoint(ctx, x, y, scale = 1) {
+      const blink = (Math.sin(performance.now() / 260) + 1) / 2;
+      ctx.save();
+      ctx.fillStyle = `rgba(22, 163, 74, ${0.14 + blink * 0.16})`;
+      ctx.beginPath();
+      ctx.arc(x, y, (13 + blink * 15) * scale, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = `rgba(22, 163, 74, ${0.74 - blink * 0.28})`;
+      ctx.lineWidth = 2.6;
+      ctx.beginPath();
+      ctx.arc(x, y, (16 + blink * 18) * scale, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = CHART_THEME.success;
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(x, y, (7 + blink * 1.8) * scale, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawValueBadge(ctx, text, x, y, align = "right", tone = "default") {
+      ctx.save();
+      ctx.font = "800 12px 'Avenir Next', Avenir, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+      const paddingX = 9;
+      const w = ctx.measureText(text).width + paddingX * 2;
+      const h = 23;
+      const bx = align === "right" ? x - w : x;
+      const by = y - h;
+      ctx.shadowColor = "rgba(16, 32, 22, 0.10)";
+      ctx.shadowBlur = 12;
+      ctx.shadowOffsetY = 5;
+      ctx.fillStyle = tone === "success" ? "#ecfdf3" : "#f0fdf4";
+      roundRect(ctx, bx, by, w, h, 999, true);
+      ctx.restore();
+      ctx.strokeStyle = tone === "success" ? "rgba(22, 163, 74, .24)" : "rgba(22, 163, 74, .22)";
+      ctx.lineWidth = 1;
+      roundRect(ctx, bx, by, w, h, 999, false);
+      ctx.fillStyle = tone === "success" ? CHART_THEME.successDark : CHART_THEME.accentDark;
+      ctx.font = "800 12px 'Avenir Next', Avenir, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(text, bx + w / 2, by + 15);
+    }
+
+    function drawVerticalBar(ctx, x, y, width, height, color) {
+      const barRadius = Math.min(14, width / 2);
+      const gradient = ctx.createLinearGradient(0, y, 0, y + height);
+      let shadowColor = CHART_THEME.accentGlow;
+      let highlight = "rgba(255, 255, 255, 0.26)";
+
+      if (color === CHART_THEME.boq) {
+        gradient.addColorStop(0, "#93c5fd");
+        gradient.addColorStop(.36, "#3b82f6");
+        gradient.addColorStop(1, CHART_THEME.boqDark);
+        shadowColor = CHART_THEME.boqGlow;
+      } else if (color === CHART_THEME.earned || color === CHART_THEME.success) {
+        gradient.addColorStop(0, "#86efac");
+        gradient.addColorStop(.42, "#22c55e");
+        gradient.addColorStop(1, CHART_THEME.earnedDark || CHART_THEME.successDark);
+        shadowColor = CHART_THEME.earnedSoft || CHART_THEME.successSoft;
+      } else if (color === CHART_THEME.accent) {
+        gradient.addColorStop(0, "#86efac");
+        gradient.addColorStop(.42, "#22c55e");
+        gradient.addColorStop(1, CHART_THEME.accentDark);
+      } else {
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(1, color);
+        shadowColor = "rgba(16, 32, 22, 0)";
+        highlight = "rgba(255, 255, 255, 0.18)";
+      }
+
+      ctx.save();
+      ctx.shadowColor = shadowColor;
+      ctx.shadowBlur = color === "#cbd9cf" || color === "#dce8df" ? 0 : 13;
+      ctx.shadowOffsetY = color === "#cbd9cf" || color === "#dce8df" ? 0 : 5;
+      ctx.fillStyle = gradient;
+      roundRect(ctx, x, y, width, height, barRadius, true);
+      ctx.restore();
+
+      if (height > 10) {
+        ctx.fillStyle = highlight;
+        roundRect(ctx, x + Math.max(2, width * .13), y + 3, Math.max(1, width - Math.max(4, width * .26)), Math.max(2, height * .18), barRadius, true);
+      }
+    }
+
+    function niceMax(value) {
+      if (!Number.isFinite(value) || value <= 0) return 1;
+      const exponent = Math.floor(Math.log10(value));
+      const base = Math.pow(10, exponent);
+      const normalized = value / base;
+      const nice = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
+      return nice * base;
+    }
+
+    function compactMoney(value) {
+      if (Math.abs(value) >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
+      if (Math.abs(value) >= 1_000) return `${Math.round(value / 1_000)}K`;
+      return formatNumber(value);
+    }
+
+    function drawEmptyChart(ctx, width, height, text) {
+      ctx.save();
+      const boxW = Math.min(340, width - 40);
+      const boxH = 74;
+      const x = (width - boxW) / 2;
+      const y = (height - boxH) / 2;
+      ctx.fillStyle = "rgba(255, 255, 255, 0.74)";
+      roundRect(ctx, x, y, boxW, boxH, 18, true);
+      ctx.strokeStyle = CHART_THEME.line;
+      ctx.lineWidth = 1;
+      roundRect(ctx, x + .5, y + .5, boxW - 1, boxH - 1, 18, false);
+      ctx.fillStyle = CHART_THEME.muted;
+      ctx.font = "700 13px 'Avenir Next', Avenir, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(text, width / 2, height / 2 + 5);
+      ctx.restore();
+    }
+
+    function roundRect(ctx, x, y, width, height, radius, fill) {
+      const r = Math.min(radius, Math.abs(width) / 2, Math.abs(height) / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + width, y, x + width, y + height, r);
+      ctx.arcTo(x + width, y + height, x, y + height, r);
+      ctx.arcTo(x, y + height, x, y, r);
+      ctx.arcTo(x, y, x + width, y, r);
+      ctx.closePath();
+      if (fill) ctx.fill();
+    }
+
+    function escapeHTML(value) {
+      return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      }[char]));
+    }
+
+    function escapeAttr(value) {
+      return escapeHTML(value).replace(/`/g, "&#096;");
+    }
+
+    function openFillData() {
+      window.open(ENTRY_FORM_FILE, "_blank");
+    }
+
+    async function loadDashboard() {
+      state.meta = { worksheet3Rows: 0, worksheet3ActualRows: 0, subtotalRows: 0, actualValueMode: "quantity", errors: [] };
+      setStatus("loading", "Loading Google Sheet CSV data...", "Reading Worksheet 1, Worksheet 2, and Worksheet 3 from the published CSV links.");
+
+      try {
+        const [projectRows, boqRows, timeRows] = await Promise.all([
+          fetchCSV("Worksheet 1 / project_info", SHEETS.projectInfo, true),
+          fetchCSV("Worksheet 2 / boq_plan_quantity", SHEETS.boqPlanQuantity, true),
+          fetchCSV("Worksheet 3 / Input_record", SHEETS.timeQuantity, true)
+        ]);
+
+        state.project = buildProject(projectRows);
+
+        const itemNoCounts = new Map();
+        const lotItemCounts = new Map();
+        const roadItemCounts = new Map();
+        boqRows.forEach(row => {
+          const lot = clean(pick(row, ["Lot", "Package"]));
+          const roadLine = clean(pick(row, ["Road Line", "Road", "Line", "Roadline"]));
+          const itemNo = clean(pick(row, ["Item No.", "Item No", "Item", "BOQ Item", "BOQ Item No."]));
+          if (!itemNo) return;
+          const itemOnlyKey = makeItemOnlyKey(itemNo);
+          const lotItemKey = makeLotItemKey(lot, itemNo);
+          const roadItemKey = makeRoadItemKey(roadLine, itemNo);
+          itemNoCounts.set(itemOnlyKey, (itemNoCounts.get(itemOnlyKey) || 0) + 1);
+          if (lotItemKey) lotItemCounts.set(lotItemKey, (lotItemCounts.get(lotItemKey) || 0) + 1);
+          if (roadItemKey) roadItemCounts.set(roadItemKey, (roadItemCounts.get(roadItemKey) || 0) + 1);
+        });
+
+        const actualIndexes = buildActualIndexes(timeRows, { itemNoCounts, lotItemCounts, roadItemCounts });
+        state.boqItems = buildBOQ(boqRows, actualIndexes);
+        state.timeRows = timeRows;
+        state.timeline = buildSCurveTimeline(timeRows, state.boqItems);
+        state.lotTimeline = buildLotSCurveTimeline(timeRows, state.boqItems);
+        state.roadSummary = summarizeRoadLines(state.boqItems);
+        state.lotSummary = summarizeLots(state.boqItems);
+
+        if (!state.boqItems.length) {
+          throw new Error("boq_plan_quantity loaded, but no normal BOQ item rows were found. Check Item No. and Description columns.");
+        }
+
+        renderAll();
+
+        const warning = state.meta.errors.length ? ` Some optional sheet warnings: ${state.meta.errors.join("; ")}` : "";
+        setStatus("ready", "Loaded", `${formatNumber(state.boqItems.length)} BOQ items · ${formatNumber(state.meta.worksheet3ActualRows)} Input_record rows · quantity mode · ${state.timeline.length ? state.timeline[state.timeline.length - 1].progress.toFixed(1) : "0.0"}% progress${warning}`);
+      } catch (error) {
+        console.error(error);
+        setStatus("error", "Dashboard could not load the Google Sheet CSV data", `${error.message}. Please check that all three sheets are published as CSV and accessible.`);
+      }
+    }
+
+    window.addEventListener("resize", () => {
+      if (state.boqItems.length) renderCharts();
+    });
+
+    function updateBangkokClock() {
+      const clock = document.getElementById("bangkokClock");
+      if (!clock) return;
+      const now = new Date();
+      const parts = new Intl.DateTimeFormat("en-GB", {
+        timeZone: "Asia/Bangkok",
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false
+      }).formatToParts(now).reduce((acc, part) => {
+        acc[part.type] = part.value;
+        return acc;
+      }, {});
+      clock.textContent = `${parts.day} ${parts.month} ${parts.year}, ${parts.hour}:${parts.minute}:${parts.second}`;
+    }
+
+    updateBangkokClock();
+    setInterval(updateBangkokClock, 1000);
+
+    function resetFilters() {
+      state.filters = { lot: "all", roadLine: "all", search: "" };
+      const searchInput = document.getElementById("searchInput");
+      if (searchInput) searchInput.value = "";
+      populateFilters();
+      updateFilteredViews();
+    }
+
+    function exportCurrentCSV() {
+      const rows = filteredItems();
+      const headers = ["RW", "Lot", "Road Line", "Item No.", "Description", "Unit", "Planned Qty", "Actual Qty", "Rate", "Amount", "Progress %"];
+      const csvRows = [headers, ...rows.map(item => [
+        item.rw,
+        item.lot,
+        item.roadLine,
+        item.itemNo,
+        item.description,
+        item.unit,
+        item.quantity,
+        item.actualQty,
+        item.rate,
+        item.amount,
+        item.progress.toFixed(2)
+      ])];
+      const csv = csvRows.map(row => row.map(value => {
+        const text = String(value ?? "");
+        return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+      }).join(",")).join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const stamp = new Date().toISOString().slice(0, 10);
+      link.href = url;
+      link.download = `boq-filtered-items-${stamp}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    function startSCurveBlink() {
+      // Keep the animated "blink blink" endpoint on the main S-curve and each Lot S-curve.
+      if (scurveBlinkFrame) return;
+
+      const animate = () => {
+        if (state.timeline.length && document.getElementById("progressChart")) {
+          drawSCurveChart("progressChart", state.timeline);
+        }
+
+        if (state.lotTimeline.length) {
+          state.lotTimeline.forEach((curve, index) => {
+            drawSingleLotSCurveChart(`lotSCurveCanvas${index}`, curve);
+          });
+        }
+
+        scurveBlinkFrame = requestAnimationFrame(animate);
+      };
+
+      scurveBlinkFrame = requestAnimationFrame(animate);
+    }
+
+
+    loadDashboard();
+  </script>
+</body>
+</html>
