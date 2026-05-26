@@ -1452,6 +1452,39 @@
       box-shadow: none !important;
     }
 
+
+
+    .bill-summary-card { margin-bottom: 22px; }
+
+    .bill-summary-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .bill-summary-select {
+      width: auto;
+      min-width: 170px;
+      padding: 9px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 750;
+      background: #ffffff;
+    }
+
+    .bill-summary-table .not-paid-cell {
+      text-align: center;
+      color: var(--muted) !important;
+      font-weight: 750 !important;
+      letter-spacing: .01em;
+    }
+
+    .bill-summary-table .dash-value {
+      color: var(--muted);
+      font-weight: 750;
+    }
+
     @media (max-width: 1320px) {
       .app { padding: 18px; }
       .dashboard-shell { grid-template-columns: 1fr; }
@@ -1572,14 +1605,19 @@
               <h2 class="card-title">Package Monthly Progress Summary</h2>
               <p class="card-caption" id="packageSummaryCaption">Previous, this month, and up-to-date earned amount by lot.</p>
             </div>
-            <span class="mini-pill blue" id="packageSummaryPill">0 lots</span>
+            <div class="bill-summary-actions">
+              <select class="bill-summary-select" id="packageSummaryScope" onchange="renderPackageSummaryTable()" aria-label="Choose lot for package summary">
+                <option value="all">All lots</option>
+              </select>
+              <span class="mini-pill blue" id="packageSummaryPill">0 lots</span>
+            </div>
           </div>
           <div class="package-table-wrap">
             <table class="package-summary-table" aria-label="Package monthly progress summary">
               <thead>
                 <tr>
-                  <th>Lot</th>
-                  <th>Description</th>
+                  <th id="packageSummaryFirstHeader">Lot</th>
+                  <th id="packageSummarySecondHeader">Description</th>
                   <th>Previous<br>Amount US$</th>
                   <th>This Month<br>Amount US$</th>
                   <th>Up to Date<br>Amount US$</th>
@@ -1589,6 +1627,38 @@
                 </tr>
               </thead>
               <tbody id="packageSummaryTable"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card table-card package-summary-card bill-summary-card">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">Bill Monthly Progress Summary</h2>
+              <p class="card-caption" id="billSummaryCaption">Previous, this month, and up-to-date earned amount by bill.</p>
+            </div>
+            <div class="bill-summary-actions">
+              <select class="bill-summary-select" id="billSummaryScope" onchange="renderBillSummaryTable()" aria-label="Choose lot for bill summary">
+                <option value="all">All lots</option>
+              </select>
+              <span class="mini-pill blue" id="billSummaryPill">0 bills</span>
+            </div>
+          </div>
+          <div class="package-table-wrap">
+            <table class="package-summary-table bill-summary-table" aria-label="Bill monthly progress summary">
+              <thead>
+                <tr>
+                  <th>Bill</th>
+                  <th>Description</th>
+                  <th>Previous<br>Amount US$</th>
+                  <th>This Month<br>Amount US$</th>
+                  <th>Up to Date<br>Amount US$</th>
+                  <th>Previous<br>%</th>
+                  <th>This Month<br>%</th>
+                  <th>Up to Date<br>%</th>
+                </tr>
+              </thead>
+              <tbody id="billSummaryTable"></tbody>
             </table>
           </div>
         </section>
@@ -2511,13 +2581,51 @@
       return "Package";
     }
 
-    function buildPackageSummary(items) {
-      const totalsByLot = new Map();
-      const earnedByLot = new Map();
-      items.forEach(item => {
-        const lot = clean(item.lot) || "-";
-        totalsByLot.set(lot, (totalsByLot.get(lot) || 0) + item.amount);
-        earnedByLot.set(lot, (earnedByLot.get(lot) || 0) + item.earnedAmount);
+    function getPackageSummaryScopeLabel(scope, items = state.boqItems || []) {
+      if (!scope || scope === "all") return packageDescriptionLabel(items);
+      return lotDescriptionLabel(scope);
+    }
+
+    function roadLineNumberLabel(roadLine) {
+      const text = displayCode(roadLine);
+      return text || "-";
+    }
+
+    function roadLineDescriptionLabel(roadLine) {
+      const text = displayCode(roadLine);
+      return text || "Road Line";
+    }
+
+    function populatePackageSummaryScope(lots) {
+      const select = document.getElementById("packageSummaryScope");
+      if (!select) return "all";
+
+      const previous = select.value || state.meta.packageSummaryScope || "all";
+      const sortedLots = [...lots].sort((a, b) => String(displayCode(a)).localeCompare(String(displayCode(b)), undefined, { numeric: true }));
+      select.innerHTML = `
+        <option value="all">All lots</option>
+        ${sortedLots.map(lot => `<option value="${escapeHTML(lot)}">${escapeHTML(lotDescriptionLabel(lot))}</option>`).join("")}
+      `;
+
+      const next = previous !== "all" && sortedLots.some(lot => normalizeKey(lot) === normalizeKey(previous))
+        ? sortedLots.find(lot => normalizeKey(lot) === normalizeKey(previous))
+        : "all";
+      select.value = next;
+      state.meta.packageSummaryScope = next;
+      return next;
+    }
+
+    function buildPackageSummary(items, scope = "all") {
+      const scopedItems = scope === "all" ? items : items.filter(item => normalizeKey(item.lot) === normalizeKey(scope));
+      const lots = new Set(items.map(item => clean(item.lot)).filter(Boolean));
+      const groupByRoadLine = scope !== "all";
+      const totalsByGroup = new Map();
+      const earnedByGroup = new Map();
+
+      scopedItems.forEach(item => {
+        const key = clean(groupByRoadLine ? item.roadLine : item.lot) || "-";
+        totalsByGroup.set(key, (totalsByGroup.get(key) || 0) + item.amount);
+        earnedByGroup.set(key, (earnedByGroup.get(key) || 0) + item.earnedAmount);
       });
 
       const lookup = buildBOQLookup(items);
@@ -2537,24 +2645,25 @@
 
         const item = findBOQItem(lookup, rw, lotFromRow, roadLine, itemNo);
         if (!item) return;
+        if (scope !== "all" && normalizeKey(item.lot) !== normalizeKey(scope)) return;
 
         const measure = extractActualMeasure(row, item);
-        const lot = clean(item.lot) || lotFromRow || "-";
-        records.push({ lot, date, earnedAmount: measure.earnedAmount });
+        const key = clean(groupByRoadLine ? item.roadLine : item.lot) || (groupByRoadLine ? roadLine : lotFromRow) || "-";
+        records.push({ key, date, earnedAmount: measure.earnedAmount });
         if (!latestDate || date > latestDate) latestDate = date;
       });
 
       const reportingDate = getReportingDateForSummary();
       const summaryDate = reportingDate || latestDate;
       const reportingMonth = summaryDate ? monthKeyFromDate(summaryDate) : "";
-      const lots = [...totalsByLot.keys()].sort((a, b) => String(displayCode(a)).localeCompare(String(displayCode(b)), undefined, { numeric: true }));
+      const keys = [...totalsByGroup.keys()].sort((a, b) => String(displayCode(a)).localeCompare(String(displayCode(b)), undefined, { numeric: true }));
 
-      const rows = lots.map(lot => {
-        const totalAmount = totalsByLot.get(lot) || 0;
+      const rows = keys.map(key => {
+        const totalAmount = totalsByGroup.get(key) || 0;
         let previousAmount = 0;
         let thisMonthAmount = 0;
 
-        records.filter(record => record.lot === lot).forEach(record => {
+        records.filter(record => normalizeKey(record.key) === normalizeKey(key)).forEach(record => {
           if (!reportingMonth || monthKeyFromDate(record.date) === reportingMonth) {
             thisMonthAmount += record.earnedAmount;
           } else {
@@ -2562,7 +2671,7 @@
           }
         });
 
-        const earnedFromItems = earnedByLot.get(lot) || 0;
+        const earnedFromItems = earnedByGroup.get(key) || 0;
         const datedEarned = previousAmount + thisMonthAmount;
         const undatedOrUnmatchedEarned = Math.max(0, earnedFromItems - datedEarned);
         if (undatedOrUnmatchedEarned) {
@@ -2572,9 +2681,9 @@
 
         const upToDateAmount = previousAmount + thisMonthAmount;
         return {
-          lot,
-          lotNumber: lotNumberLabel(lot),
-          description: lotDescriptionLabel(lot),
+          key,
+          lotNumber: groupByRoadLine ? roadLineNumberLabel(key) : lotNumberLabel(key),
+          description: groupByRoadLine ? roadLineDescriptionLabel(key) : lotDescriptionLabel(key),
           totalAmount,
           previousAmount,
           thisMonthAmount,
@@ -2585,23 +2694,40 @@
         };
       });
 
-      return { rows, latestDate, summaryDate, packageDescription: packageDescriptionLabel(items) };
+      return {
+        rows,
+        lots,
+        latestDate,
+        summaryDate,
+        scope,
+        scopeLabel: getPackageSummaryScopeLabel(scope, items),
+        packageDescription: packageDescriptionLabel(items),
+        groupByRoadLine
+      };
     }
 
     function renderPackageSummaryTable() {
       const tbody = document.getElementById("packageSummaryTable");
       const pill = document.getElementById("packageSummaryPill");
       const caption = document.getElementById("packageSummaryCaption");
+      const firstHeader = document.getElementById("packageSummaryFirstHeader");
+      const secondHeader = document.getElementById("packageSummarySecondHeader");
       if (!tbody) return;
 
-      const items = filteredItems();
-      const summary = buildPackageSummary(items);
+      const allItems = filteredItems();
+      const lots = new Set(allItems.map(item => clean(item.lot)).filter(Boolean));
+      const scope = populatePackageSummaryScope(lots);
+      state.meta.packageSummaryScope = scope;
+      const summary = buildPackageSummary(allItems, scope);
       const rows = summary.rows;
-      if (pill) pill.textContent = `${formatNumber(rows.length)} lots`;
+
+      if (firstHeader) firstHeader.textContent = summary.groupByRoadLine ? "Road Line" : "Lot";
+      if (secondHeader) secondHeader.textContent = "Description";
+      if (pill) pill.textContent = summary.groupByRoadLine ? `${formatNumber(rows.length)} road lines` : `${formatNumber(rows.length)} lots`;
 
       if (!rows.length) {
-        tbody.innerHTML = `<tr><td colspan="8"><div class="empty">No lot data available for the package summary.</div></td></tr>`;
-        if (caption) caption.textContent = "Previous, this month, and up-to-date earned amount by lot.";
+        tbody.innerHTML = `<tr><td colspan="8"><div class="empty">No ${summary.groupByRoadLine ? "road line" : "lot"} data available for the package summary.</div></td></tr>`;
+        if (caption) caption.textContent = "Previous, this month, and up-to-date earned amount by lot or road line.";
         return;
       }
 
@@ -2617,9 +2743,10 @@
       total.upToDatePct = total.totalAmount > 0 ? (total.upToDateAmount / total.totalAmount) * 100 : 0;
 
       if (caption) {
+        const scopeText = scope === "all" ? "all lots" : `${summary.scopeLabel} road lines`;
         caption.textContent = summary.summaryDate
-          ? `Reporting month: ${summary.summaryDate.toLocaleDateString(undefined, { month: "long", year: "numeric", timeZone: "UTC" })}. Previous is calculated before that month; this month is calculated within that month.`
-          : "Input_record dates were not found, so the table uses up-to-date earned amount from the loaded records.";
+          ? `Showing ${scopeText}. Reporting month: ${summary.summaryDate.toLocaleDateString(undefined, { month: "long", year: "numeric", timeZone: "UTC" })}. Previous is before that month; this month is within that month.`
+          : `Showing ${scopeText}. Input_record dates were not found, so the table uses up-to-date earned amount from the loaded records.`;
       }
 
       const progressLevel = value => {
@@ -2631,11 +2758,16 @@
       };
       const amountCell = (value, columnClass = "") => `<td class="right amount-cell ${columnClass}"><span class="money-value">${formatPackageAmount(value)}</span></td>`;
       const percentCell = (value, columnClass = "") => `<td class="percent-cell ${columnClass}"><span class="percent-chip ${progressLevel(value)}">${formatPackagePercent(value)}</span></td>`;
+      const groupBadge = summary.groupByRoadLine ? summary.scopeLabel : "All";
+      const groupName = summary.groupByRoadLine ? "Road line breakdown" : summary.packageDescription;
+      const totalLabel = summary.groupByRoadLine
+        ? `SUM OF ${lotDescriptionLabel(scope).toUpperCase()}`
+        : `SUM OF ${summary.packageDescription}`;
 
       tbody.innerHTML = `
         <tr class="package-group-row">
-          <td><span class="package-all-badge">All</span></td>
-          <td><span class="package-name">${escapeHTML(summary.packageDescription)}</span></td>
+          <td><span class="package-all-badge">${escapeHTML(groupBadge)}</span></td>
+          <td><span class="package-name">${escapeHTML(groupName)}</span></td>
           <td></td><td></td><td></td><td></td><td></td><td></td>
         </tr>
         ${rows.map(row => `
@@ -2652,7 +2784,250 @@
         `).join("")}
         <tr class="summary-total-row">
           <td><span class="sum-badge">Σ</span></td>
-          <td><span class="sum-label">SUM OF ${escapeHTML(summary.packageDescription)}</span></td>
+          <td><span class="sum-label">${escapeHTML(totalLabel)}</span></td>
+          ${amountCell(total.previousAmount, "previous-col")}
+          ${amountCell(total.thisMonthAmount, "month-col")}
+          ${amountCell(total.upToDateAmount, "uptodate-col")}
+          ${percentCell(total.previousPct, "previous-col")}
+          ${percentCell(total.thisMonthPct, "month-col")}
+          ${percentCell(total.upToDatePct, "uptodate-col")}
+        </tr>
+      `;
+    }
+
+
+    const BILL_SUMMARY_DEFINITIONS = [
+      { number: 1, code: "B01", description: "General Items", notPaidSeparately: true },
+      { number: 2, code: "B02", description: "Earthworks & Allied Activities" },
+      { number: 3, code: "B03", description: "Sub base & Base Course" },
+      { number: 4, code: "B04", description: "Bituminous Works" },
+      { number: 5, code: "B05", description: "Structures" },
+      { number: 6, code: "B06", description: "Drainage & Protection Works" },
+      { number: 7, code: "B07", description: "Ancillary Works" },
+      { number: 8, code: "B08", description: "Unexploded Ordnance" },
+      { number: 9, code: "B09", description: "Miscellaneous" },
+      { number: 10, code: "B10", description: "Total for Daywork (Provisional Sum)" }
+    ];
+
+    function getBillNumberFromItemNo(itemNo) {
+      const text = clean(itemNo).toUpperCase();
+      const match = text.match(/^B\s*0*(\d+)/) || text.match(/^0*(\d+)/);
+      if (!match) return null;
+      const number = Number(match[1]);
+      return Number.isFinite(number) ? number : null;
+    }
+
+    function getBillDefinition(number) {
+      return BILL_SUMMARY_DEFINITIONS.find(def => def.number === number) || {
+        number,
+        code: `B${String(number).padStart(2, "0")}`,
+        description: `Bill ${number}`
+      };
+    }
+
+    function getBillDescriptionFromItems(number, items) {
+      const def = getBillDefinition(number);
+      if (def.description) return def.description;
+      const item = items.find(row => getBillNumberFromItemNo(row.itemNo) === number && row.description);
+      if (!item) return `Bill ${number}`;
+      return clean(item.description).split(" - ")[0] || `Bill ${number}`;
+    }
+
+    function formatBillAmount(value) {
+      const amount = Number.isFinite(value) ? value : 0;
+      return Math.abs(amount) < 0.005 ? "-" : formatPackageAmount(amount);
+    }
+
+    function getBillSummaryScopeLabel(scope) {
+      if (!scope || scope === "all") return packageDescriptionLabel(state.boqItems || []);
+      return lotDescriptionLabel(scope);
+    }
+
+    function populateBillSummaryScope(lots) {
+      const select = document.getElementById("billSummaryScope");
+      if (!select) return "all";
+
+      const previous = select.value || state.meta.billSummaryScope || "all";
+      const sortedLots = [...lots].sort((a, b) => String(displayCode(a)).localeCompare(String(displayCode(b)), undefined, { numeric: true }));
+      select.innerHTML = `
+        <option value="all">All lots</option>
+        ${sortedLots.map(lot => `<option value="${escapeHTML(lot)}">${escapeHTML(lotDescriptionLabel(lot))}</option>`).join("")}
+      `;
+
+      const next = previous !== "all" && sortedLots.includes(previous) ? previous : "all";
+      select.value = next;
+      state.meta.billSummaryScope = next;
+      return next;
+    }
+
+    function buildBillSummary(items, scope = "all") {
+      const scopedItems = scope === "all" ? items : items.filter(item => normalizeKey(item.lot) === normalizeKey(scope));
+      const lots = new Set(items.map(item => clean(item.lot)).filter(Boolean));
+      const totalsByBill = new Map();
+      const earnedByBill = new Map();
+      const presentBills = new Set(BILL_SUMMARY_DEFINITIONS.map(def => def.number));
+
+      scopedItems.forEach(item => {
+        const billNo = getBillNumberFromItemNo(item.itemNo);
+        if (!billNo) return;
+        presentBills.add(billNo);
+        totalsByBill.set(billNo, (totalsByBill.get(billNo) || 0) + item.amount);
+        earnedByBill.set(billNo, (earnedByBill.get(billNo) || 0) + item.earnedAmount);
+      });
+
+      const lookup = buildBOQLookup(items);
+      const records = [];
+      let latestDate = null;
+
+      state.timeRows.forEach(row => {
+        const date = parseSheetDate(pick(row, ["Date", "Report Date", "Work Date", "Inspection Date", "Input Date"]));
+        if (!date) return;
+
+        const rw = clean(pick(row, ["RW", "R/W", "Right of Way", "ICB_Code", "ICB Code", "ICB"]));
+        const lotFromRow = clean(pick(row, ["Lot", "Package"]));
+        const roadLine = clean(pick(row, ["Road Line", "Roadline", "Road", "Line"]));
+        const itemNo = clean(pick(row, ["Item No.", "Item No", "Item", "BOQ Item", "BOQ Item No."]));
+        const rawActual = extractRawActualValue(row);
+        if (!rawActual || (!itemNo && !roadLine)) return;
+
+        const item = findBOQItem(lookup, rw, lotFromRow, roadLine, itemNo);
+        if (!item) return;
+        if (scope !== "all" && normalizeKey(item.lot) !== normalizeKey(scope)) return;
+
+        const billNo = getBillNumberFromItemNo(item.itemNo);
+        if (!billNo) return;
+
+        const measure = extractActualMeasure(row, item);
+        records.push({ billNo, date, earnedAmount: measure.earnedAmount });
+        if (!latestDate || date > latestDate) latestDate = date;
+      });
+
+      const reportingDate = getReportingDateForSummary();
+      const summaryDate = reportingDate || latestDate;
+      const reportingMonth = summaryDate ? monthKeyFromDate(summaryDate) : "";
+      const billNumbers = [...presentBills].sort((a, b) => a - b);
+
+      const rows = billNumbers.map(billNo => {
+        const totalAmount = totalsByBill.get(billNo) || 0;
+        let previousAmount = 0;
+        let thisMonthAmount = 0;
+
+        records.filter(record => record.billNo === billNo).forEach(record => {
+          if (!reportingMonth || monthKeyFromDate(record.date) === reportingMonth) {
+            thisMonthAmount += record.earnedAmount;
+          } else {
+            previousAmount += record.earnedAmount;
+          }
+        });
+
+        const earnedFromItems = earnedByBill.get(billNo) || 0;
+        const datedEarned = previousAmount + thisMonthAmount;
+        const undatedOrUnmatchedEarned = Math.max(0, earnedFromItems - datedEarned);
+        if (undatedOrUnmatchedEarned) {
+          if (reportingMonth) previousAmount += undatedOrUnmatchedEarned;
+          else thisMonthAmount += undatedOrUnmatchedEarned;
+        }
+
+        const upToDateAmount = previousAmount + thisMonthAmount;
+        const def = getBillDefinition(billNo);
+        return {
+          billNo,
+          description: getBillDescriptionFromItems(billNo, scopedItems),
+          totalAmount,
+          previousAmount,
+          thisMonthAmount,
+          upToDateAmount,
+          previousPct: totalAmount > 0 ? (previousAmount / totalAmount) * 100 : 0,
+          thisMonthPct: totalAmount > 0 ? (thisMonthAmount / totalAmount) * 100 : 0,
+          upToDatePct: totalAmount > 0 ? (upToDateAmount / totalAmount) * 100 : 0,
+          notPaidSeparately: def.notPaidSeparately && totalAmount <= 0
+        };
+      });
+
+      return { rows, lots, latestDate, summaryDate, scope, scopeLabel: getBillSummaryScopeLabel(scope) };
+    }
+
+    function renderBillSummaryTable() {
+      const tbody = document.getElementById("billSummaryTable");
+      const pill = document.getElementById("billSummaryPill");
+      const caption = document.getElementById("billSummaryCaption");
+      if (!tbody) return;
+
+      const allItems = filteredItems();
+      const lots = new Set(allItems.map(item => clean(item.lot)).filter(Boolean));
+      const scope = populateBillSummaryScope(lots);
+      state.meta.billSummaryScope = scope;
+      const summary = buildBillSummary(allItems, scope);
+      const rows = summary.rows;
+
+      if (pill) pill.textContent = `${formatNumber(rows.length)} bills`;
+
+      if (!rows.length) {
+        tbody.innerHTML = `<tr><td colspan="8"><div class="empty">No bill data available.</div></td></tr>`;
+        if (caption) caption.textContent = "Previous, this month, and up-to-date earned amount by bill.";
+        return;
+      }
+
+      const total = rows.reduce((acc, row) => {
+        if (row.notPaidSeparately) return acc;
+        acc.totalAmount += row.totalAmount;
+        acc.previousAmount += row.previousAmount;
+        acc.thisMonthAmount += row.thisMonthAmount;
+        acc.upToDateAmount += row.upToDateAmount;
+        return acc;
+      }, { totalAmount: 0, previousAmount: 0, thisMonthAmount: 0, upToDateAmount: 0 });
+      total.previousPct = total.totalAmount > 0 ? (total.previousAmount / total.totalAmount) * 100 : 0;
+      total.thisMonthPct = total.totalAmount > 0 ? (total.thisMonthAmount / total.totalAmount) * 100 : 0;
+      total.upToDatePct = total.totalAmount > 0 ? (total.upToDateAmount / total.totalAmount) * 100 : 0;
+
+      if (caption) {
+        const scopeText = scope === "all" ? "all lots" : summary.scopeLabel;
+        caption.textContent = summary.summaryDate
+          ? `Showing ${scopeText}. Reporting month: ${summary.summaryDate.toLocaleDateString(undefined, { month: "long", year: "numeric", timeZone: "UTC" })}. Previous is before that month; this month is within that month.`
+          : `Showing ${scopeText}. Input_record dates were not found, so the table uses up-to-date earned amount from the loaded records.`;
+      }
+
+      const progressLevel = value => {
+        const pct = Number.isFinite(value) ? value : 0;
+        if (pct >= 99.995) return "complete";
+        if (pct >= 75) return "high";
+        if (pct > 0) return "active";
+        return "zero";
+      };
+      const amountCell = (value, columnClass = "") => `<td class="right amount-cell ${columnClass}"><span class="money-value ${Math.abs(value || 0) < 0.005 ? "dash-value" : ""}">${formatBillAmount(value)}</span></td>`;
+      const percentCell = (value, columnClass = "") => `<td class="percent-cell ${columnClass}"><span class="percent-chip ${progressLevel(value)}">${formatPackagePercent(value)}</span></td>`;
+      const totalLabel = scope === "all"
+        ? `SUM OF ${summary.scopeLabel}`
+        : `SUM OF ${lotDescriptionLabel(scope).toUpperCase()}`;
+
+      tbody.innerHTML = `
+        ${rows.map(row => {
+          if (row.notPaidSeparately) {
+            return `
+              <tr class="package-data-row">
+                <td><span class="lot-badge">${escapeHTML(String(row.billNo))}</span></td>
+                <td class="description-cell">${escapeHTML(row.description)}</td>
+                <td class="not-paid-cell" colspan="3">Not paid separately</td>
+                <td></td><td></td><td></td>
+              </tr>
+            `;
+          }
+          return `
+            <tr class="package-data-row">
+              <td><span class="lot-badge">${escapeHTML(String(row.billNo))}</span></td>
+              <td class="description-cell">${escapeHTML(row.description)}</td>
+              ${amountCell(row.previousAmount, "previous-col")}
+              ${amountCell(row.thisMonthAmount, "month-col")}
+              ${amountCell(row.upToDateAmount, "uptodate-col")}
+              ${percentCell(row.previousPct, "previous-col")}
+              ${percentCell(row.thisMonthPct, "month-col")}
+              ${percentCell(row.upToDatePct, "uptodate-col")}
+            </tr>
+          `;
+        }).join("")}
+        <tr class="summary-total-row">
+          <td><span class="sum-badge">Σ</span></td>
+          <td><span class="sum-label">${escapeHTML(totalLabel)}</span></td>
           ${amountCell(total.previousAmount, "previous-col")}
           ${amountCell(total.thisMonthAmount, "month-col")}
           ${amountCell(total.upToDateAmount, "uptodate-col")}
@@ -2779,6 +3154,7 @@
       renderKPIs();
       populateFilters();
       renderPackageSummaryTable();
+      renderBillSummaryTable();
       renderSummary();
       renderBOQTable();
       renderCharts();
@@ -2786,6 +3162,7 @@
 
     function updateFilteredViews() {
       renderPackageSummaryTable();
+      renderBillSummaryTable();
       renderSummary();
       renderBOQTable();
       renderCharts();
@@ -2945,51 +3322,89 @@
         return;
       }
 
-      const rows = data;
-      const max = niceMax(Math.max(...rows.map(row => Math.max(row.amount, row.earnedAmount)), 1));
-      const pad = { left: 72, right: 24, top: 44, bottom: 58 };
-      const chartW = width - pad.left - pad.right;
-      const chartH = height - pad.top - pad.bottom;
-      const groupW = chartW / rows.length;
-      const pairGap = Math.max(6, Math.min(10, groupW * 0.08));
-      const barW = Math.max(12, Math.min(30, (groupW * 0.54 - pairGap) / 2));
-      const pairW = barW * 2 + pairGap;
+      const rows = data.slice().sort((a, b) => String(displayCode(a.lot)).localeCompare(String(displayCode(b.lot)), undefined, { numeric: true }));
+      const pad = { left: 104, right: 185, top: 86, bottom: 34 };
+      const chartW = Math.max(150, width - pad.left - pad.right);
+      const availableH = height - pad.top - pad.bottom;
+      const rowH = Math.max(38, Math.min(50, availableH / rows.length));
+      const barH = Math.max(14, Math.min(18, rowH * 0.42));
 
       drawChartPanel(ctx, width, height, pad);
-      drawGrid(ctx, width, height, pad, max, "money");
 
-      rows.forEach((row, i) => {
-        const groupX = pad.left + groupW * i + (groupW - pairW) / 2;
-        const boqX = groupX;
-        const earnedX = groupX + barW + pairGap;
+      ctx.fillStyle = CHART_THEME.ink;
+      ctx.font = "800 13px 'Avenir Next', Avenir, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText("Lot", 20, 30);
+      ctx.fillText("Earned Progress", pad.left, 30);
+      ctx.textAlign = "right";
+      ctx.fillText("Earned / BOQ", width - 18, 30);
 
-        ctx.fillStyle = "rgba(240, 245, 241, 0.78)";
-        roundRect(ctx, boqX, pad.top, barW, chartH, Math.min(10, barW / 2), true);
-        roundRect(ctx, earnedX, pad.top, barW, chartH, Math.min(10, barW / 2), true);
-
-        const amountH = Math.max(row.amount > 0 ? 4 : 2, (row.amount / max) * chartH);
-        const amountY = pad.top + chartH - amountH;
-        drawVerticalBar(ctx, boqX, amountY, barW, amountH, CHART_THEME.boq);
-
-        const earnedH = Math.max(row.earnedAmount > 0 ? 4 : 2, (row.earnedAmount / max) * chartH);
-        const earnedY = pad.top + chartH - earnedH;
-        drawVerticalBar(ctx, earnedX, earnedY, barW, earnedH, row.earnedAmount > 0 ? CHART_THEME.earned : "#dce8df");
+      [0, 25, 50, 75, 100].forEach(pct => {
+        const x = pad.left + (pct / 100) * chartW;
+        ctx.beginPath();
+        ctx.strokeStyle = pct === 0 ? CHART_THEME.line : CHART_THEME.lineSoft;
+        ctx.lineWidth = 1;
+        ctx.moveTo(x, pad.top - 6);
+        ctx.lineTo(x, pad.top + rows.length * rowH - 5);
+        ctx.stroke();
 
         ctx.fillStyle = CHART_THEME.muted;
-        ctx.font = "600 12px 'Avenir Next', Avenir, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+        ctx.font = "600 10px 'Avenir Next', Avenir, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
         ctx.textAlign = "center";
-        ctx.fillText(`Lot ${row.lot}`, groupX + pairW / 2, height - 20);
+        ctx.fillText(`${pct}%`, x, pad.top - 18);
       });
 
-      ctx.font = "700 12px 'Avenir Next', Avenir, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
-      ctx.textAlign = "left";
-      ctx.fillStyle = CHART_THEME.boq;
-      roundRect(ctx, pad.left, 15, 12, 8, 4, true);
-      ctx.fillText("BOQ Amount", pad.left + 18, 23);
-      ctx.fillStyle = CHART_THEME.earned;
-      roundRect(ctx, pad.left + 122, 15, 12, 8, 4, true);
-      ctx.fillText("Earned", pad.left + 140, 23);
+      rows.forEach((row, i) => {
+        const yTop = pad.top + i * rowH;
+        const yCenter = yTop + rowH / 2;
+        const barY = yCenter - barH / 2;
+        const progress = row.amount > 0 ? safePct((row.earnedAmount / row.amount) * 100) : 0;
+        const fillW = Math.max(progress > 0 ? 4 : 0, (progress / 100) * chartW);
+
+        if (i % 2 === 0) {
+          ctx.fillStyle = "rgba(250, 247, 241, 0.72)";
+          roundRect(ctx, 12, yTop + 3, width - 24, rowH - 6, 12, true);
+        }
+
+        ctx.fillStyle = CHART_THEME.ink;
+        ctx.font = "900 14px 'Avenir Next', Avenir, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+        ctx.textAlign = "left";
+        ctx.fillText(`Lot ${displayCode(row.lot)}`, 18, yCenter + 4);
+
+        ctx.fillStyle = "rgba(232, 239, 234, 0.95)";
+        roundRect(ctx, pad.left, barY, chartW, barH, 999, true);
+
+        if (fillW > 0) {
+          const earnedGradient = ctx.createLinearGradient(pad.left, 0, pad.left + chartW, 0);
+          earnedGradient.addColorStop(0, CHART_THEME.earnedDark);
+          earnedGradient.addColorStop(0.58, CHART_THEME.earned);
+          earnedGradient.addColorStop(1, "#86efac");
+          ctx.fillStyle = earnedGradient;
+          roundRect(ctx, pad.left, barY, fillW, barH, 999, true);
+        }
+
+        const pillText = `${progress.toFixed(0)}%`;
+        const pillW = 46;
+        const pillH = 19;
+        const pillX = Math.min(pad.left + chartW - pillW, Math.max(pad.left, pad.left + fillW - pillW / 2));
+        const pillY = yCenter - pillH / 2;
+        ctx.fillStyle = progress > 0 ? "#ecfdf3" : "#f3f6f8";
+        roundRect(ctx, pillX, pillY, pillW, pillH, 999, true);
+        ctx.strokeStyle = progress > 0 ? "rgba(22, 163, 74, 0.24)" : "rgba(203, 217, 207, 0.85)";
+        ctx.lineWidth = 1;
+        roundRect(ctx, pillX, pillY, pillW, pillH, 999, false);
+        ctx.fillStyle = progress > 0 ? CHART_THEME.earnedDark : CHART_THEME.muted;
+        ctx.font = "800 10px 'Avenir Next', Avenir, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(pillText, pillX + pillW / 2, pillY + 13);
+
+        ctx.fillStyle = "#506458";
+        ctx.font = "650 10px 'Avenir Next', Avenir, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+        ctx.textAlign = "right";
+        ctx.fillText(`${formatMoney(row.earnedAmount)} / ${formatMoney(row.amount)}`, width - 18, yCenter + 4);
+      });
     }
+
 
     function getBOQGroupCode(itemNo) {
       const text = clean(itemNo).toUpperCase().replace(/\s+/g, "");
